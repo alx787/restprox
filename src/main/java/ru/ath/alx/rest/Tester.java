@@ -17,13 +17,23 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.HttpResponse;
 
 
+import javax.net.ssl.HttpsURLConnection;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.nio.charset.StandardCharsets;
 
 
 @Path("/hello")
@@ -39,30 +49,109 @@ public class Tester {
         log.warn(" ===== 123 =====");
 
         String token = "";
+        String url = "";
 
-        HttpClient client = HttpClients.createDefault();
-        HttpGet request = new HttpGet("https://wialon.kiravto.ru/wialon/ajax.html?svc=token/login&params={\"token\": \"" + token + "\"}");
-        request.addHeader("Content-Type", "application/x-www-form-urlencoded");
+        log.warn(url);
 
-        HttpResponse response;
+
+//        HttpURLConnection connection = null;
+        HttpsURLConnection connection = null;
+        StringBuilder result = new StringBuilder();
         try {
-            response = client.execute(request);
+            connection = (HttpsURLConnection) new URL(url).openConnection();
+//            connection.setRequestMethod("GET");
+//            connection.setRequestProperty("Accept-Charset", "UTF-8");
+//            connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
 
+            int responseCode = connection.getResponseCode();
+
+            if (responseCode == HttpsURLConnection.HTTP_OK) {
+                InputStream inputStream = connection.getInputStream();
+                InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
+                BufferedReader reader = new BufferedReader(inputStreamReader);
+                String line = reader.readLine();
+                while (line != null) {
+                    result.append(line);
+                    line = reader.readLine();
+                }
+
+                log.warn(result.toString());
+
+                return result.toString();
+
+            }
+
+            return "error code " + String.valueOf(responseCode) + " - " + connection.getResponseMessage();
+
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
-            return "empty 1";
+        } finally {
+            if (connection != null) {
+                connection.disconnect();
+            }
         }
+        return "";
 
-        String jsonString = "[]";
 
-        try {
-            jsonString = IOUtils.toString(response.getEntity().getContent());
-        } catch (IOException e) {
-            e.printStackTrace();
-            return "empty 2";
-        }
+        //
+//
+//
+//
+//
+//
+//        URL url = null;
+//        HttpURLConnection urlConnection = null;
+//        StringBuilder result = new StringBuilder();
+//        try {
+//            url = new URL(urlstr);
+//            urlConnection = (HttpURLConnection) url.openConnection();
+//            InputStream inputStream = urlConnection.getInputStream();
+//            InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
+//            BufferedReader reader = new BufferedReader(inputStreamReader);
+//            String line = reader.readLine();
+//            while (line != null) {
+//                result.append(line);
+//                line = reader.readLine();
+//            }
+//            return result.toString();
+//        } catch (MalformedURLException e) {
+//            e.printStackTrace();
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        } finally {
+//            if (urlConnection != null) {
+//                urlConnection.disconnect();
+//            }
+//        }
+//        return null;
+//
 
-        return jsonString;
+//        HttpClient client = HttpClients.createDefault();
+////        HttpGet request = new HttpGet("https://wialon.kiravto.ru/wialon/ajax.html?svc=token/login&params={\"token\": \"" + token + "\"}");
+//        HttpGet request = new HttpGet("https://wialon.kiravto.ru/wialon/ajax.html?svc=token/login&params={'token': '" + token + "'}");
+//        request.addHeader("Content-Type", "application/x-www-form-urlencoded");
+//
+//        HttpResponse response;
+//        try {
+//            response = client.execute(request);
+//
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//            return "empty 1";
+//        }
+//
+//        String jsonString = "[]";
+//
+//        try {
+//            jsonString = IOUtils.toString(response.getEntity().getContent());
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//            return "empty 2";
+//        }
+//
+//        return jsonString;
 
 
 //        HTTPОтвет = ВыполнитьHTTPЗапрос(ДанныеАвторизации.Получить("СерверВиалон") + "/wialon/ajax.html?svc=token/login&params={""token"": """ + ДанныеАвторизации.Получить("Токен") + """}",ТекстОшибки);
