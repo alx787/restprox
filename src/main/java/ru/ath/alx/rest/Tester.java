@@ -7,14 +7,10 @@ package ru.ath.alx.rest;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import org.apache.http.impl.client.HttpClients;
+
+import com.google.gson.JsonParser;
 import org.apache.log4j.Logger;
 
-import org.apache.commons.io.IOUtils;
-import org.apache.http.client.HttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.HttpResponse;
 
 
 import javax.net.ssl.HttpsURLConnection;
@@ -29,10 +25,10 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.IOException;
-import java.net.HttpURLConnection;
+
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLConnection;
+
 import java.nio.charset.StandardCharsets;
 
 
@@ -59,9 +55,10 @@ public class Tester {
         StringBuilder result = new StringBuilder();
         try {
             connection = (HttpsURLConnection) new URL(url).openConnection();
-//            connection.setRequestMethod("GET");
-//            connection.setRequestProperty("Accept-Charset", "UTF-8");
-//            connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+            connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+
+            log.warn(connection.toString());
+
 
             int responseCode = connection.getResponseCode();
 
@@ -77,7 +74,25 @@ public class Tester {
 
                 log.warn(result.toString());
 
-                return result.toString();
+                // получим идентификатор сессии
+                // распарсим ответ
+                JsonObject jsonObject = new JsonParser().parse(result.toString()).getAsJsonObject();
+                // произошла ошибка
+                if (jsonObject.has("error")) {
+                    log.warn("ошибка при получении sid");
+                    log.warn(result.toString());
+                    return "";
+                }
+
+                // ищем sid - не найден
+                if (!jsonObject.has("eid")) {
+                    log.warn("ошибка при получении sid");
+                    log.warn("в структуре ответа не найден элемент eid");
+                    return "";
+                }
+
+
+                return jsonObject.get("eid").getAsString();
 
             }
 
@@ -94,86 +109,6 @@ public class Tester {
         }
         return "";
 
-
-        //
-//
-//
-//
-//
-//
-//        URL url = null;
-//        HttpURLConnection urlConnection = null;
-//        StringBuilder result = new StringBuilder();
-//        try {
-//            url = new URL(urlstr);
-//            urlConnection = (HttpURLConnection) url.openConnection();
-//            InputStream inputStream = urlConnection.getInputStream();
-//            InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
-//            BufferedReader reader = new BufferedReader(inputStreamReader);
-//            String line = reader.readLine();
-//            while (line != null) {
-//                result.append(line);
-//                line = reader.readLine();
-//            }
-//            return result.toString();
-//        } catch (MalformedURLException e) {
-//            e.printStackTrace();
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        } finally {
-//            if (urlConnection != null) {
-//                urlConnection.disconnect();
-//            }
-//        }
-//        return null;
-//
-
-//        HttpClient client = HttpClients.createDefault();
-////        HttpGet request = new HttpGet("https://wialon.kiravto.ru/wialon/ajax.html?svc=token/login&params={\"token\": \"" + token + "\"}");
-//        HttpGet request = new HttpGet("https://wialon.kiravto.ru/wialon/ajax.html?svc=token/login&params={'token': '" + token + "'}");
-//        request.addHeader("Content-Type", "application/x-www-form-urlencoded");
-//
-//        HttpResponse response;
-//        try {
-//            response = client.execute(request);
-//
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//            return "empty 1";
-//        }
-//
-//        String jsonString = "[]";
-//
-//        try {
-//            jsonString = IOUtils.toString(response.getEntity().getContent());
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//            return "empty 2";
-//        }
-//
-//        return jsonString;
-
-
-//        HTTPОтвет = ВыполнитьHTTPЗапрос(ДанныеАвторизации.Получить("СерверВиалон") + "/wialon/ajax.html?svc=token/login&params={""token"": """ + ДанныеАвторизации.Получить("Токен") + """}",ТекстОшибки);
-//
-//
-//        Если ЗначениеЗаполнено(ТекстОшибки) Тогда
-//        Возврат "";
-//        КонецЕсли;
-//
-//        КодСостояния = HTTPОтвет.КодСостояния;
-//
-//        Если КодСостояния = 200 Тогда
-//                responseText = HTTPОтвет.ПолучитьТелоКакСтроку();
-//        ЧтениеJSON = Новый ЧтениеJSON;
-//        ЧтениеJSON.УстановитьСтроку(responseText);
-//        response = ПрочитатьJSON(ЧтениеJSON, Истина);
-//        ЧтениеJSON.Закрыть();
-//
-//        Возврат response.Получить("eid");
-//        КонецЕсли;
-//
-//        Возврат "";
 
 
 
