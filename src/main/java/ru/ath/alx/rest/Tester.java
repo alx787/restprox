@@ -37,28 +37,24 @@ public class Tester {
 
     private static final Logger log = Logger.getLogger(Tester.class);
 
+    private String token = "a2146922f0785ff8de16107355d6a9937B3D8DD79EBF8A6A5D44C89137C92CB1595A495C";
+//    String url = "https://wialon.kiravto.ru/wialon/ajax.html?svc=token/login&params={\"token\": \"" + token + "\"}";
 
-    @GET
-    @Produces(MediaType.TEXT_PLAIN)
-    @Path("/hw")
-    public String getMessage() {
-        log.warn(" ===== 123 =====");
-
-        String token = "";
-        String url = "";
-
-        log.warn(url);
+    private static final String URL_GET_SID = "https://wialon.kiravto.ru/wialon/ajax.html?svc=token/login&params={\"token\": \"%s\"}";
+    private static final String URL_GET_OBJS = "https://wialon.kiravto.ru/wialon/ajax.html?svc=core/search_items&params={\"spec\":{\"itemsType\":\"avl_unit\",\"propName\":\"sys_name\",\"propValueMask\":\"*\",\"sortType\":\"sys_name\"},\"force\":1,\"flags\":\"0x00800109\",\"from\":0,\"to\":0}&sid=%s";
 
 
-//        HttpURLConnection connection = null;
+
+    private String sendRequest(String url) {
         HttpsURLConnection connection = null;
         StringBuilder result = new StringBuilder();
+        boolean wasError = false;
+
         try {
             connection = (HttpsURLConnection) new URL(url).openConnection();
             connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
 
             log.warn(connection.toString());
-
 
             int responseCode = connection.getResponseCode();
 
@@ -72,47 +68,181 @@ public class Tester {
                     line = reader.readLine();
                 }
 
-                log.warn(result.toString());
-
-                // получим идентификатор сессии
-                // распарсим ответ
-                JsonObject jsonObject = new JsonParser().parse(result.toString()).getAsJsonObject();
-                // произошла ошибка
-                if (jsonObject.has("error")) {
-                    log.warn("ошибка при получении sid");
-                    log.warn(result.toString());
-                    return "";
-                }
-
-                // ищем sid - не найден
-                if (!jsonObject.has("eid")) {
-                    log.warn("ошибка при получении sid");
-                    log.warn("в структуре ответа не найден элемент eid");
-                    return "";
-                }
-
-
-                return jsonObject.get("eid").getAsString();
-
+            } else {
+                log.warn("error code " + String.valueOf(responseCode) + " - " + connection.getResponseMessage());
+                wasError = true;
             }
-
-            return "error code " + String.valueOf(responseCode) + " - " + connection.getResponseMessage();
 
         } catch (MalformedURLException e) {
             e.printStackTrace();
+            log.warn("ошибка - неверно сформированный url");
+            wasError = true;
+
         } catch (IOException e) {
             e.printStackTrace();
+            log.warn("ошибка - ошибка ввода вывода");
+            wasError = true;
+
         } finally {
             if (connection != null) {
                 connection.disconnect();
             }
         }
-        return "";
+
+
+        if (wasError) {
+            return null;
+        }
+
+        return result.toString();
+    }
+
+
+    private String getSID() {
+        String res = sendRequest(String.format(URL_GET_SID, this.token));
+
+        // распарсим ответ
+        JsonObject jsonObject = new JsonParser().parse(res).getAsJsonObject();
+
+        // произошла ошибка
+        if (jsonObject.has("error")) {
+            log.warn("ошибка при получении sid");
+            log.warn(res);
+            return null;
+        }
+
+        // ищем sid - не найден
+        if (!jsonObject.has("eid")) {
+            log.warn("ошибка при получении sid");
+            log.warn("в структуре ответа не найден элемент eid");
+            return null;
+        }
+
+        return jsonObject.get("eid").getAsString();
+    }
+
+
+//    private String sendRequest1111(String url, boolean getSID) {
+//
+//        HttpsURLConnection connection = null;
+//        StringBuilder result = new StringBuilder();
+//
+//        String fullUrl;
+//
+//        if (getSID) {
+//            fullUrl = String.format(url, this.token);
+//        } else {
+//            fullUrl = String.format(url, this.sid);
+//        }
+//
+//
+//        try {
+//            connection = (HttpsURLConnection) new URL(fullUrl).openConnection();
+//            connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+//
+//            log.warn(connection.toString());
+//
+//            int responseCode = connection.getResponseCode();
+//
+//            if (responseCode == HttpsURLConnection.HTTP_OK) {
+//                InputStream inputStream = connection.getInputStream();
+//                InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
+//                BufferedReader reader = new BufferedReader(inputStreamReader);
+//                String line = reader.readLine();
+//                while (line != null) {
+//                    result.append(line);
+//                    line = reader.readLine();
+//                }
+//
+//            } else {
+//                log.warn("error code " + String.valueOf(responseCode) + " - " + connection.getResponseMessage());
+//                return "";
+//            }
+//
+//        } catch (MalformedURLException e) {
+//            e.printStackTrace();
+//            log.warn("ошибка - неверно сформированный url");
+//            return "";
+//
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//            log.warn("ошибка - ошибка ввода вывода");
+//            return "";
+//
+//        } finally {
+//            if (connection != null) {
+//                connection.disconnect();
+//            }
+//        }
+//
+//
+//        log.warn(result.toString());
+//
+//        // распарсим ответ
+//        JsonObject jsonObject = new JsonParser().parse(result.toString()).getAsJsonObject();
+//
+//
+//        // получим идентификатор сессии
+//        if (getSID) {
+//
+//            // произошла ошибка
+//            if (jsonObject.has("error")) {
+//                log.warn("ошибка при получении sid");
+//                log.warn(result.toString());
+//                return "";
+//            }
+//
+//            // ищем sid - не найден
+//            if (!jsonObject.has("eid")) {
+//                log.warn("ошибка при получении sid");
+//                log.warn("в структуре ответа не найден элемент eid");
+//                return "";
+//            }
+//
+//            return jsonObject.get("eid").getAsString();
+//
+//        }
+//
+//
+//        // остальные запросы
+//        this.sid = sendRequest(URL_GET_SID, true);
+//
+//
+//
+//        if (this.sid.equals("")) {
+//            log.warn("не получен sid запрос выполнить невозможно");
+//            return "";
+//        }
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//        return "";
+//    }
+
+    @GET
+    @Produces(MediaType.TEXT_PLAIN)
+    @Path("/hw")
+    public String getMessage() {
+        log.warn(" ===== 123 =====");
+
+//        String token = "";
+//        String url = "";
+
+//        log.warn(url);
+
+
+//        return sendRequest(URL_GET_OBJS, false);
 
 
 
 
-//        return "Hello world!";
+        return "Hello world!";
     }
 
     @GET
