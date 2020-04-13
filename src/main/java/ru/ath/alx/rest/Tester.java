@@ -37,8 +37,7 @@ public class Tester {
 
     private static final Logger log = Logger.getLogger(Tester.class);
 
-    private String token = "a2146922f0785ff8de16107355d6a9937B3D8DD79EBF8A6A5D44C89137C92CB1595A495C";
-//    String url = "https://wialon.kiravto.ru/wialon/ajax.html?svc=token/login&params={\"token\": \"" + token + "\"}";
+    private String token = "";
 
     private static final String URL_GET_SID = "https://wialon.kiravto.ru/wialon/ajax.html?svc=token/login&params={\"token\": \"%s\"}";
     private static final String URL_GET_OBJS = "https://wialon.kiravto.ru/wialon/ajax.html?svc=core/search_items&params={\"spec\":{\"itemsType\":\"avl_unit\",\"propName\":\"sys_name\",\"propValueMask\":\"*\",\"sortType\":\"sys_name\"},\"force\":1,\"flags\":\"0x00800109\",\"from\":0,\"to\":0}&sid=%s";
