@@ -30,18 +30,25 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 import java.nio.charset.StandardCharsets;
+import java.util.zip.GZIPInputStream;
 
 
-@Path("/hello")
+@Path("/wl")
 public class Tester {
 
     private static final Logger log = Logger.getLogger(Tester.class);
 
     private String token = "";
+    private String sid = "";
 
-    private static final String URL_GET_SID = "https://wialon.kiravto.ru/wialon/ajax.html?svc=token/login&params={\"token\": \"%s\"}";
-    private static final String URL_GET_OBJS = "https://wialon.kiravto.ru/wialon/ajax.html?svc=core/search_items&params={\"spec\":{\"itemsType\":\"avl_unit\",\"propName\":\"sys_name\",\"propValueMask\":\"*\",\"sortType\":\"sys_name\"},\"force\":1,\"flags\":\"0x00800109\",\"from\":0,\"to\":0}&sid=%s";
-
+    // получить сид
+    private static final String URL_GET_SID = "https://wialon.kiravto.ru/wialon/ajax.html?svc=token/login&params={\"token\":\"%s\"}";
+    // получить все объекты
+    private static final String URL_GET_ALLOBJS = "https://wialon.kiravto.ru/wialon/ajax.html?svc=core/search_items&params={\"spec\":{\"itemsType\":\"avl_unit\",\"propName\":\"sys_name\",\"propValueMask\":\"*\",\"sortType\":\"sys_name\"},\"force\":1,\"flags\":\"0x00800109\",\"from\":0,\"to\":0}&sid=%s";
+    // получить данные по одному объекту
+    private static final String URL_GET_ONEOBJ = "https://wialon.kiravto.ru/wialon/ajax.html?svc=core/search_items&params={\"spec\":{\"itemsType\":\"avl_unit\",\"propName\":\"sys_id\",\"propValueMask\":\"__search_value__\",\"sortType\":\"sys_name\"},\"force\":1,\"flags\":\"0x00800109\",\"from\":0,\"to\":0}&sid=%s";
+    // получить общие данные о пробеге
+    private static final String URL_GET_TRACK = "https://wialon.kiravto.ru/wialon/ajax.html?svc=report/exec_report&params={\"reportResourceId\":__report_id__,\"reportTemplateId\":__template_id__,\"reportObjectId\":__object_id__,\"reportObjectSecId\":0,\"reportObjectIdList\":[],\"interval\":{\"from\":__date_begin__,\"to\":__date_end__,\"flags\":0}}&sid=%s";
 
 
     private String sendRequest(String url) {
@@ -51,6 +58,8 @@ public class Tester {
 
         try {
             connection = (HttpsURLConnection) new URL(url).openConnection();
+//            connection.setRequestProperty("charset", StandardCharsets.UTF_8.displayName());
+            connection.setRequestProperty("charset", "UTF-8");
             connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
 
             log.warn(connection.toString());
@@ -59,7 +68,7 @@ public class Tester {
 
             if (responseCode == HttpsURLConnection.HTTP_OK) {
                 InputStream inputStream = connection.getInputStream();
-                InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
+                InputStreamReader inputStreamReader = new InputStreamReader(inputStream, "UTF-8");
                 BufferedReader reader = new BufferedReader(inputStreamReader);
                 String line = reader.readLine();
                 while (line != null) {
@@ -121,214 +130,148 @@ public class Tester {
     }
 
 
-//    private String sendRequest1111(String url, boolean getSID) {
+    private String getDataFromWln(String url, boolean useSid) {
+
+        if (useSid) {
+            this.sid = getSID();
+        }
+
+        return sendRequest(String.format(url, this.sid));
+    }
+
+
+    // этот сервис используется для получения информации об объекте, в приложении он будет задействован
+    // для наполнения/обновления таблицы, используемой при запросах с мобильных устройств
+    // чтобы уменьшить частоту запросов к исходному серверу
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/getobject/{id}")
+    public Response getObjectsInfo(@PathParam("id") String id) {
+
+        if ((id == null) || (id.equals(""))) {
+            return Response.ok("{}").build();
+        }
+
+        String result = "";
+        if (id.equals("all")) {
+            result = getDataFromWln(URL_GET_ALLOBJS, true);
+        } else {
+            result = getDataFromWln(URL_GET_ONEOBJ.replace("__search_value__", id), true);
+        }
+
+        return Response.ok(result).build();
+
+    }
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/gettrack/{id}/{datebegin}/{dateend}")
+    public Response getObjectTrack(@PathParam("id") String id, @PathParam("datebegin") String datebegin, @PathParam("dateend") String dateend) {
+        if ((id == null) || (id.equals(""))) {
+            return Response.ok("{\"status\":\"error\", \"description\":\"object id is empty\"}").build();
+        }
+
+        String reportId = "2352";
+        String templateId = "2"; // 1САТХ МРСК
+
+        String url = URL_GET_TRACK.replace("__report_id__", reportId);
+        url = url.replace("__template_id__", templateId);
+        url = url.replace("__object_id__", id);
+        url = url.replace("__date_begin__", datebegin);
+        url = url.replace("__date_end__", dateend);
+
+        String result = getDataFromWln(url, true);
+
+        return Response.ok(result).build();
+
+    }
+
+
+//    @GET
+//    @Produces(MediaType.APPLICATION_JSON)
+//    @Path("/js/{id0}/{id1}")
+//    public Response getJsonObj(@PathParam("id0") String id0, @PathParam("id1") String id1) {
 //
-//        HttpsURLConnection connection = null;
-//        StringBuilder result = new StringBuilder();
+//        String sId0 = "";
+//        String sId1 = "";
 //
-//        String fullUrl;
+//        if (id0 != null) {
+//            sId0 = id0;
+//        }
 //
-//        if (getSID) {
-//            fullUrl = String.format(url, this.token);
-//        } else {
-//            fullUrl = String.format(url, this.sid);
+//        if (id1 != null) {
+//            sId1 = id1;
 //        }
 //
 //
-//        try {
-//            connection = (HttpsURLConnection) new URL(fullUrl).openConnection();
-//            connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+//        JsonObject jsonObject = new JsonObject();
+//        jsonObject.addProperty("objId", "всем привет");
+//        jsonObject.addProperty("msg1", sId0);
+//        jsonObject.addProperty("msg2", sId1);
 //
-//            log.warn(connection.toString());
+//        Gson gson = new Gson();
 //
-//            int responseCode = connection.getResponseCode();
-//
-//            if (responseCode == HttpsURLConnection.HTTP_OK) {
-//                InputStream inputStream = connection.getInputStream();
-//                InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
-//                BufferedReader reader = new BufferedReader(inputStreamReader);
-//                String line = reader.readLine();
-//                while (line != null) {
-//                    result.append(line);
-//                    line = reader.readLine();
-//                }
-//
-//            } else {
-//                log.warn("error code " + String.valueOf(responseCode) + " - " + connection.getResponseMessage());
-//                return "";
-//            }
-//
-//        } catch (MalformedURLException e) {
-//            e.printStackTrace();
-//            log.warn("ошибка - неверно сформированный url");
-//            return "";
-//
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//            log.warn("ошибка - ошибка ввода вывода");
-//            return "";
-//
-//        } finally {
-//            if (connection != null) {
-//                connection.disconnect();
-//            }
-//        }
+//        log.warn(gson.toJson(jsonObject).toString());
 //
 //
-//        log.warn(result.toString());
-//
-//        // распарсим ответ
-//        JsonObject jsonObject = new JsonParser().parse(result.toString()).getAsJsonObject();
-//
-//
-//        // получим идентификатор сессии
-//        if (getSID) {
-//
-//            // произошла ошибка
-//            if (jsonObject.has("error")) {
-//                log.warn("ошибка при получении sid");
-//                log.warn(result.toString());
-//                return "";
-//            }
-//
-//            // ищем sid - не найден
-//            if (!jsonObject.has("eid")) {
-//                log.warn("ошибка при получении sid");
-//                log.warn("в структуре ответа не найден элемент eid");
-//                return "";
-//            }
-//
-//            return jsonObject.get("eid").getAsString();
-//
-//        }
-//
-//
-//        // остальные запросы
-//        this.sid = sendRequest(URL_GET_SID, true);
-//
-//
-//
-//        if (this.sid.equals("")) {
-//            log.warn("не получен sid запрос выполнить невозможно");
-//            return "";
-//        }
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//        return "";
+//        return Response.ok(gson.toJson(jsonObject)).build();
 //    }
-
-    @GET
-    @Produces(MediaType.TEXT_PLAIN)
-    @Path("/hw")
-    public String getMessage() {
-        log.warn(" ===== 123 =====");
-
-//        String token = "";
-//        String url = "";
-
-//        log.warn(url);
-
-
-//        return sendRequest(URL_GET_OBJS, false);
-
-
-
-
-        return "Hello world!";
-    }
-
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    @Path("/js/{id0}/{id1}")
-    public Response getJsonObj(@PathParam("id0") String id0, @PathParam("id1") String id1) {
-
-        String sId0 = "";
-        String sId1 = "";
-
-        if (id0 != null) {
-            sId0 = id0;
-        }
-
-        if (id1 != null) {
-            sId1 = id1;
-        }
-
-
-        JsonObject jsonObject = new JsonObject();
-        jsonObject.addProperty("objId", "всем привет");
-        jsonObject.addProperty("msg1", sId0);
-        jsonObject.addProperty("msg2", sId1);
-
-        Gson gson = new Gson();
-
-        log.warn(gson.toJson(jsonObject).toString());
-
-
-        return Response.ok(gson.toJson(jsonObject)).build();
-    }
-
-
-    // получение информации за период
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    @Path("/info/{id}/{datebeg}/{dateend}")
-    public Response getTrack(@PathParam("id") String invnom,
-                             @PathParam("datebeg") String datebeg,
-                             @PathParam("dateend") String dateend) {
-
-
-//        return Response.ok("{\"status\":\"error\", \"description\":\"exception in query\"}").build();
-
-        JsonObject jsonRestAnswer = new JsonObject();
-        jsonRestAnswer.addProperty("status", "ok");
-        jsonRestAnswer.addProperty("total", 2);
-
-        JsonArray jsonArray = new JsonArray();
-
-        JsonObject oneRec = new JsonObject();
-        oneRec.addProperty("datebeg", 12121212);
-        oneRec.addProperty("dateend", 23232323);
-        oneRec.addProperty("placebeg", "место 1");
-        oneRec.addProperty("placendg", "место 2");
-        oneRec.addProperty("mileage", "29 km");
-        oneRec.addProperty("motohour", "1:16:10");
-
-        oneRec.addProperty("duration", "6:59:34");
-
-        jsonArray.add(oneRec);
-
-        oneRec = new JsonObject();
-        oneRec.addProperty("datebeg", 12121212);
-        oneRec.addProperty("dateend", 23232323);
-        oneRec.addProperty("placebeg", "место 1");
-        oneRec.addProperty("placendg", "место 2");
-        oneRec.addProperty("mileage", "29 km");
-        oneRec.addProperty("motohour", "1:16:10");
-
-        oneRec.addProperty("duration", "6:59:34");
-
-        jsonArray.add(oneRec);
-
-
-        jsonRestAnswer.add("records", jsonArray);
-
-
-        Gson gson = new Gson();
-
-//        log.warn(gson.toJson(jsonRestAnswer).toString());
-
-
-        return Response.ok(gson.toJson(jsonRestAnswer)).build();
-
-
-    }
+//
+//
+//    // получение информации за период
+//    @GET
+//    @Produces(MediaType.APPLICATION_JSON)
+//    @Path("/info/{id}/{datebeg}/{dateend}")
+//    public Response getTrack(@PathParam("id") String invnom,
+//                             @PathParam("datebeg") String datebeg,
+//                             @PathParam("dateend") String dateend) {
+//
+//
+////        return Response.ok("{\"status\":\"error\", \"description\":\"exception in query\"}").build();
+//
+//        JsonObject jsonRestAnswer = new JsonObject();
+//        jsonRestAnswer.addProperty("status", "ok");
+//        jsonRestAnswer.addProperty("total", 2);
+//
+//        JsonArray jsonArray = new JsonArray();
+//
+//        JsonObject oneRec = new JsonObject();
+//        oneRec.addProperty("datebeg", 12121212);
+//        oneRec.addProperty("dateend", 23232323);
+//        oneRec.addProperty("placebeg", "место 1");
+//        oneRec.addProperty("placendg", "место 2");
+//        oneRec.addProperty("mileage", "29 km");
+//        oneRec.addProperty("motohour", "1:16:10");
+//
+//        oneRec.addProperty("duration", "6:59:34");
+//
+//        jsonArray.add(oneRec);
+//
+//        oneRec = new JsonObject();
+//        oneRec.addProperty("datebeg", 12121212);
+//        oneRec.addProperty("dateend", 23232323);
+//        oneRec.addProperty("placebeg", "место 1");
+//        oneRec.addProperty("placendg", "место 2");
+//        oneRec.addProperty("mileage", "29 km");
+//        oneRec.addProperty("motohour", "1:16:10");
+//
+//        oneRec.addProperty("duration", "6:59:34");
+//
+//        jsonArray.add(oneRec);
+//
+//
+//        jsonRestAnswer.add("records", jsonArray);
+//
+//
+//        Gson gson = new Gson();
+//
+////        log.warn(gson.toJson(jsonRestAnswer).toString());
+//
+//
+//        return Response.ok(gson.toJson(jsonRestAnswer)).build();
+//
+//
+//    }
 
 
 }
