@@ -1,0 +1,30 @@
+CREATE DATABASE restproxdb CHARACTER SET utf8 COLLATE utf8_general_ci;
+
+GRANT ALL PRIVILEGES ON restproxdb.* TO 'rpuser'@'localhost' IDENTIFIED BY 'rppass';
+
+CREATE TABLE restproxdb.transport (
+	id INT (10) UNSIGNED NOT NULL AUTO_INCREMENT,
+	wlnid VARCHAR (10) DEFAULT '' NOT NULL,
+	wlnnm VARCHAR (100) DEFAULT '' NOT NULL,
+	vehicletype VARCHAR (100) DEFAULT '' NOT NULL,
+	grossvehicleweight VARCHAR (100) DEFAULT '' NOT NULL,
+	registrationplate VARCHAR (100) DEFAULT '' NOT NULL,
+	vin VARCHAR (100) DEFAULT '' NOT NULL,
+	brand VARCHAR (100) DEFAULT '' NOT NULL,
+	model VARCHAR (100) DEFAULT '' NOT NULL,
+	prodyear VARCHAR (100) DEFAULT '' NOT NULL,
+	color VARCHAR (100) DEFAULT '' NOT NULL,
+	enginemodel VARCHAR (100) DEFAULT '' NOT NULL,
+	primaryfueltype VARCHAR (100) DEFAULT '' NOT NULL,
+	enginepower VARCHAR (100) DEFAULT '' NOT NULL,
+	atinvnom VARCHAR (10) DEFAULT '' NOT NULL,
+	atinstalldate VARCHAR (100) DEFAULT '' NOT NULL,
+	atwheelformula VARCHAR (100) DEFAULT '' NOT NULL,
+	atdepartment VARCHAR (100) DEFAULT '' NOT NULL,
+	atautodepart VARCHAR (100) DEFAULT '' NOT NULL,
+	atlocation VARCHAR (100) DEFAULT '' NOT NULL,
+	atres VARCHAR (100) DEFAULT '' NOT NULL,
+	PRIMARY KEY (id),
+	INDEX (wlnid (10)),
+	INDEX (atinvnom (10))
+)  ENGINE = INNODB DEFAULT CHARSET = utf8 COLLATE = utf8_general_ci;
