@@ -1,0 +1,72 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+
+    <class name="ru.ath.alx.model.Transport" table="transport" schema="restproxdb">
+        <id name="id">
+            <column name="id" sql-type="int(10) unsigned"/>
+        </id>
+        <property name="wlnid">
+            <column name="wlnid" sql-type="varchar(10)" length="10"/>
+        </property>
+        <property name="wlnnm">
+            <column name="wlnnm" sql-type="varchar(100)" length="100"/>
+        </property>
+        <property name="vehicletype">
+            <column name="vehicletype" sql-type="varchar(100)" length="100"/>
+        </property>
+        <property name="grossvehicleweight">
+            <column name="grossvehicleweight" sql-type="varchar(100)" length="100"/>
+        </property>
+        <property name="registrationplate">
+            <column name="registrationplate" sql-type="varchar(100)" length="100"/>
+        </property>
+        <property name="vin">
+            <column name="vin" sql-type="varchar(100)" length="100"/>
+        </property>
+        <property name="brand">
+            <column name="brand" sql-type="varchar(100)" length="100"/>
+        </property>
+        <property name="model">
+            <column name="model" sql-type="varchar(100)" length="100"/>
+        </property>
+        <property name="prodyear">
+            <column name="prodyear" sql-type="varchar(100)" length="100"/>
+        </property>
+        <property name="color">
+            <column name="color" sql-type="varchar(100)" length="100"/>
+        </property>
+        <property name="enginemodel">
+            <column name="enginemodel" sql-type="varchar(100)" length="100"/>
+        </property>
+        <property name="primaryfueltype">
+            <column name="primaryfueltype" sql-type="varchar(100)" length="100"/>
+        </property>
+        <property name="enginepower">
+            <column name="enginepower" sql-type="varchar(100)" length="100"/>
+        </property>
+        <property name="atinvnom">
+            <column name="atinvnom" sql-type="varchar(10)" length="10"/>
+        </property>
+        <property name="atinstalldate">
+            <column name="atinstalldate" sql-type="varchar(100)" length="100"/>
+        </property>
+        <property name="atwheelformula">
+            <column name="atwheelformula" sql-type="varchar(100)" length="100"/>
+        </property>
+        <property name="atdepartment">
+            <column name="atdepartment" sql-type="varchar(100)" length="100"/>
+        </property>
+        <property name="atautodepart">
+            <column name="atautodepart" sql-type="varchar(100)" length="100"/>
+        </property>
+        <property name="atlocation">
+            <column name="atlocation" sql-type="varchar(100)" length="100"/>
+        </property>
+        <property name="atres">
+            <column name="atres" sql-type="varchar(100)" length="100"/>
+        </property>
+    </class>
+</hibernate-mapping>
