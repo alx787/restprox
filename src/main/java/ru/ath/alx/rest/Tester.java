@@ -159,6 +159,32 @@ public class Tester {
             result = getDataFromWln(URL_GET_ONEOBJ.replace("__search_value__", id), true);
         }
 
+        // преобразуем ответ в json
+        JsonObject resJsonObj = new JsonParser().parse(result).getAsJsonObject();
+        if (resJsonObj.has("items")) {
+            JsonArray resItemsJsonArr = resJsonObj.getAsJsonArray("items");
+
+            int itemsSize = resItemsJsonArr.size();
+            for (int i = 0; i < itemsSize; i++) {
+
+
+
+
+
+                JsonObject oneItem = resItemsJsonArr.get(i).getAsJsonObject();
+                // wln id
+                String wlnid = oneItem.get("id").getAsString();
+                // гос номер nm
+                String wlnnm =  oneItem.get("nm").getAsString();
+
+                log.warn("получены id = " + wlnid + " nm = " + wlnnm);
+
+            }
+
+
+        }
+
+
         return Response.ok(result).build();
 
     }

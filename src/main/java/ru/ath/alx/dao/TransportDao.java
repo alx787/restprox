@@ -5,15 +5,15 @@ import ru.ath.alx.model.Transport;
 import java.util.List;
 
 public interface TransportDao {
-    void add(Transport transport);
+    void create(Transport transport);
 
     void update(Transport transport);
 
-    void delete(Transport transport);
+    void delete(int id);
 
-    List<Transport> getTransportList(String search);
+    List<Transport> findTransportList();
 
-    Transport getTransportById(int id);
+    Transport findTransportById(int id);
 
-    Transport getTransportByInvnom(String invnom);
+    Transport findTransportByInvnom(String invnom);
 }

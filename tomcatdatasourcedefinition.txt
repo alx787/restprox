@@ -1,0 +1,17 @@
+$TOMCAT_HOME/conf/server.xml
+
+<Resource name="jdbc/rpdb"
+          auth="Container"
+          type="javax.sql.DataSource"
+          driverClassName="com.mysql.jdbc.Driver"
+          url="jdbc:mysql://localhost:3306/restproxdb"
+          username="rpuser" password="rppass" />
+
+
+
+$TOMCAT_HOME/conf/context.xml
+
+<ResourceLink name="jdbc/rpdb"
+              global="jdbc/rpdb"
+              auth="Container"
+              type="javax.sql.DataSource" />
