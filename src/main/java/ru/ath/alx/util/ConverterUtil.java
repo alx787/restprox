@@ -76,6 +76,47 @@ public class ConverterUtil {
         }
 
         // произвольные поля
+        pfldsJsonObj = jsonDataObj.get("flds").getAsJsonObject();
+
+        entrySet = pfldsJsonObj.entrySet();
+        for (Map.Entry<String, JsonElement> entry : entrySet) {
+            JsonObject onePfldsObj = pfldsJsonObj.get(entry.getKey()).getAsJsonObject();
+
+//            String pid = onePfldsObj.get("id").getAsString();
+            String pn = onePfldsObj.get("n").getAsString().toUpperCase();
+            String pv = onePfldsObj.get("v").getAsString();
+
+            switch (pn) {
+                case "ИНВ.НОМЕР":
+                    newTr.setAtinvnom(pv);
+                    break;
+                case "ДАТА УСТАНОВКИ":
+                    newTr.setAtinstalldate(pv);
+                    break;
+                case "КОЛЕСНАЯ ФОРМУЛА":
+                    newTr.setAtwheelformula(pv);
+                    break;
+                case "ПОДРАЗДЕЛЕНИЕ":
+                    newTr.setAtdepartment(pv);
+                    break;
+                case "АВТОКОЛОННА":
+                    newTr.setAtautocol(pv);
+                    break;
+                case "ЗАКРЕПЛЕНИЕ":
+                    newTr.setAtlocation(pv);
+                    break;
+                case "МЕСТО БАЗИРОВАНИЯ":
+                    newTr.setAtbase(pv);
+                    break;
+                case "РЭС":
+                    newTr.setAtres(pv);
+                    break;
+
+                default:
+
+            }
+
+        }
 
         return newTr;
     }

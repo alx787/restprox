@@ -6,13 +6,15 @@
     <session-factory>
         <!-- Database Connection Settings -->
         <property name="connection.datasource">java:comp/env/jdbc/rpdb</property>
-        <property name="connection.driver_class">com.mysql.jdbc.Driver</property>
+        <!--<property name="connection.driver_class">com.mysql.jdbc.Driver</property>-->
+        <property name="connection.driver_class">com.mysql.cj.jdbc.Driver</property>
+
         <!-- SQL Dialect -->
         <property name="hibernate.dialect">org.hibernate.dialect.MySQLDialect</property>
         <!-- Specifying Session Context -->
         <property name="hibernate.current_session_context_class">org.hibernate.context.internal.ThreadLocalSessionContext</property>
 
-        <property name="show_sql">false</property>
+        <property name="show_sql">true</property>
 
         <!--<property name="connection.url">jdbc:mysql://localhost:3306/restproxdb</property>-->
         <!--<property name="connection.driver_class">com.mysql.jdbc.Driver</property>-->
@@ -25,6 +27,6 @@
         <!--and will be:  Initial SessionFactory failedorg.hibernate.service.spi.ServiceException: Unable to create requested service-->
 
         <mapping class="ru.ath.alx.model.Transport"/>
-        <mapping resource="ru/ath/alx/model/TransportEntity.hbm.xml"/>
+        <!--<mapping resource="ru/ath/alx/model/Transport.hbm.xml"/>-->
     </session-factory>
 </hibernate-configuration>

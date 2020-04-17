@@ -2,6 +2,7 @@ package ru.ath.alx.dao;
 
 import org.hibernate.Session;
 import org.hibernate.query.Query;
+import org.hibernate.type.StringType;
 import ru.ath.alx.model.Transport;
 import ru.ath.alx.util.HibernateUtil;
 
@@ -57,12 +58,14 @@ public class TransportDaoImpl implements TransportDao {
     @Override
     public Transport findTransportByInvnom(String invnom) {
         Session session = HibernateUtil.getSessionFactory().openSession();
-        Query query = session.createQuery("FROM Transport T WHERE T.atinvnom = :paramInv");
-        query.setParameter("paramInv", invnom);
+        Query query = session.createQuery("FROM Transport T WHERE T.atinvnom = :paraminv");
+        query.setParameter("paraminv", invnom);
+//        Query query = session.createQuery("FROM Transport T WHERE T.atinvnom = ?1");
+//        query.setParameter(1, invnom, StringType.INSTANCE);
         List<Transport> transports = query.list();
         session.close();
 
-        if (transports.size() > 1) {
+        if (transports.size() == 1) {
             return transports.get(0);
         }
 

@@ -7,6 +7,7 @@ package ru.ath.alx.rest;
 import com.google.gson.*;
 
 import org.apache.log4j.Logger;
+import ru.ath.alx.dao.TransportService;
 import ru.ath.alx.model.Transport;
 import ru.ath.alx.util.ConverterUtil;
 
@@ -50,6 +51,15 @@ public class Tester {
     // получить общие данные о пробеге
     private static final String URL_GET_TRACK = "https://wialon.kiravto.ru/wialon/ajax.html?svc=report/exec_report&params={\"reportResourceId\":__report_id__,\"reportTemplateId\":__template_id__,\"reportObjectId\":__object_id__,\"reportObjectSecId\":0,\"reportObjectIdList\":[],\"interval\":{\"from\":__date_begin__,\"to\":__date_end__,\"flags\":0}}&sid=%s";
 
+
+    private TransportService trService = new TransportService();
+
+
+//    private TransportService trService;
+//
+//    public Tester() {
+//        this.trService = new TransportService();
+//    }
 
     private String sendRequest(String url) {
         HttpsURLConnection connection = null;
@@ -170,6 +180,19 @@ public class Tester {
 
                 Transport tr = ConverterUtil.getTransportFromJson(resItemsJsonArr.get(i).getAsJsonObject());
                 log.warn(tr.getModel() + " " + tr.getRegistrationplate());
+                log.warn("инвентарный номер: " + tr.getAtinvnom());
+
+                Transport searchTr = trService.findTransportByInvnom(tr.getAtinvnom());
+
+
+
+                if (searchTr != null) {
+                    tr.setId(searchTr.getId());
+                    trService.update(tr);
+                } else {
+                    //trService.create(tr);
+                }
+
             }
 
 

@@ -59,11 +59,14 @@
         <property name="atdepartment">
             <column name="atdepartment" sql-type="varchar(100)" length="100"/>
         </property>
-        <property name="atautodepart">
-            <column name="atautodepart" sql-type="varchar(100)" length="100"/>
+        <property name="atautocol">
+            <column name="atautocol" sql-type="varchar(100)" length="100"/>
         </property>
         <property name="atlocation">
             <column name="atlocation" sql-type="varchar(100)" length="100"/>
+        </property>
+        <property name="atbase">
+            <column name="atbase" sql-type="varchar(100)" length="100"/>
         </property>
         <property name="atres">
             <column name="atres" sql-type="varchar(100)" length="100"/>

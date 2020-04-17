@@ -24,8 +24,9 @@ public class Transport {
     private String atinstalldate;
     private String atwheelformula;
     private String atdepartment;
-    private String atautodepart;
+    private String atautocol;
     private String atlocation;
+    private String atbase;
     private String atres;
 
     @Id
@@ -209,13 +210,13 @@ public class Transport {
     }
 
     @Basic
-    @Column(name = "atautodepart", nullable = false, length = 100)
-    public String getAtautodepart() {
-        return atautodepart;
+    @Column(name = "atautocol", nullable = false, length = 100)
+    public String getAtautocol() {
+        return atautocol;
     }
 
-    public void setAtautodepart(String atautodepart) {
-        this.atautodepart = atautodepart;
+    public void setAtautocol(String atautocol) {
+        this.atautocol = atautocol;
     }
 
     @Basic
@@ -226,6 +227,16 @@ public class Transport {
 
     public void setAtlocation(String atlocation) {
         this.atlocation = atlocation;
+    }
+
+    @Basic
+    @Column(name = "atbase", nullable = false, length = 100)
+    public String getAtbase() {
+        return atbase;
+    }
+
+    public void setAtbase(String atbase) {
+        this.atbase = atbase;
     }
 
     @Basic
@@ -261,13 +272,14 @@ public class Transport {
                 Objects.equals(atinstalldate, that.atinstalldate) &&
                 Objects.equals(atwheelformula, that.atwheelformula) &&
                 Objects.equals(atdepartment, that.atdepartment) &&
-                Objects.equals(atautodepart, that.atautodepart) &&
+                Objects.equals(atautocol, that.atautocol) &&
                 Objects.equals(atlocation, that.atlocation) &&
+                Objects.equals(atbase, that.atbase) &&
                 Objects.equals(atres, that.atres);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, wlnid, wlnnm, vehicletype, grossvehicleweight, registrationplate, vin, brand, model, prodyear, color, enginemodel, primaryfueltype, enginepower, atinvnom, atinstalldate, atwheelformula, atdepartment, atautodepart, atlocation, atres);
+        return Objects.hash(id, wlnid, wlnnm, vehicletype, grossvehicleweight, registrationplate, vin, brand, model, prodyear, color, enginemodel, primaryfueltype, enginepower, atinvnom, atinstalldate, atwheelformula, atdepartment, atautocol, atlocation, atbase, atres);
     }
 }
