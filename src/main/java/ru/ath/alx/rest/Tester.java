@@ -4,13 +4,11 @@ package ru.ath.alx.rest;
 //import org.slf4j.LoggerFactory;
 
 
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
+import com.google.gson.*;
 
-import com.google.gson.JsonParser;
 import org.apache.log4j.Logger;
-
+import ru.ath.alx.model.Transport;
+import ru.ath.alx.util.ConverterUtil;
 
 
 import javax.net.ssl.HttpsURLConnection;
@@ -30,6 +28,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
+import java.util.Set;
 import java.util.zip.GZIPInputStream;
 
 
@@ -168,17 +168,8 @@ public class Tester {
             for (int i = 0; i < itemsSize; i++) {
 
 
-
-
-
-                JsonObject oneItem = resItemsJsonArr.get(i).getAsJsonObject();
-                // wln id
-                String wlnid = oneItem.get("id").getAsString();
-                // гос номер nm
-                String wlnnm =  oneItem.get("nm").getAsString();
-
-                log.warn("получены id = " + wlnid + " nm = " + wlnnm);
-
+                Transport tr = ConverterUtil.getTransportFromJson(resItemsJsonArr.get(i).getAsJsonObject());
+                log.warn(tr.getModel() + " " + tr.getRegistrationplate());
             }
 
 
