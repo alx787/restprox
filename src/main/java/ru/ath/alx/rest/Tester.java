@@ -10,9 +10,9 @@ import org.apache.log4j.Logger;
 import ru.ath.alx.dao.TransportService;
 import ru.ath.alx.model.Transport;
 import ru.ath.alx.util.ConverterUtil;
+import ru.ath.alx.util.WebRequestUtil;
 
 
-import javax.net.ssl.HttpsURLConnection;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -20,30 +20,18 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.IOException;
-
-import java.net.MalformedURLException;
-import java.net.URL;
-
-import java.nio.charset.StandardCharsets;
-import java.util.Map;
-import java.util.Set;
-import java.util.zip.GZIPInputStream;
-
 
 @Path("/wl")
 public class Tester {
 
     private static final Logger log = Logger.getLogger(Tester.class);
 
-    private String token = "";
+    private String token = "a2146922f0785ff8de16107355d6a993EC8CB5E823A23AB32ABBCF31000D551C96C22E29";
     private String sid = "";
 
+
     // получить сид
-    private static final String URL_GET_SID = "https://wialon.kiravto.ru/wialon/ajax.html?svc=token/login&params={\"token\":\"%s\"}";
+//    private static final String URL_GET_SID = "https://wialon.kiravto.ru/wialon/ajax.html?svc=token/login&params={\"token\":\"%s\"}";
     // получить все объекты
     private static final String URL_GET_ALLOBJS = "https://wialon.kiravto.ru/wialon/ajax.html?svc=core/search_items&params={\"spec\":{\"itemsType\":\"avl_unit\",\"propName\":\"sys_name\",\"propValueMask\":\"*\",\"sortType\":\"sys_name\"},\"force\":1,\"flags\":\"0x00800109\",\"from\":0,\"to\":0}&sid=%s";
     // получить данные по одному объекту
@@ -55,118 +43,36 @@ public class Tester {
     private TransportService trService = new TransportService();
 
 
-//    private TransportService trService;
-//
-//    public Tester() {
-//        this.trService = new TransportService();
-//    }
-
-    private String sendRequest(String url) {
-        HttpsURLConnection connection = null;
-        StringBuilder result = new StringBuilder();
-        boolean wasError = false;
-
-        try {
-            connection = (HttpsURLConnection) new URL(url).openConnection();
-//            connection.setRequestProperty("charset", StandardCharsets.UTF_8.displayName());
-            connection.setRequestProperty("charset", "UTF-8");
-            connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-
-            log.warn(connection.toString());
-
-            int responseCode = connection.getResponseCode();
-
-            if (responseCode == HttpsURLConnection.HTTP_OK) {
-                InputStream inputStream = connection.getInputStream();
-                InputStreamReader inputStreamReader = new InputStreamReader(inputStream, "UTF-8");
-                BufferedReader reader = new BufferedReader(inputStreamReader);
-                String line = reader.readLine();
-                while (line != null) {
-                    result.append(line);
-                    line = reader.readLine();
-                }
-
-            } else {
-                log.warn("error code " + String.valueOf(responseCode) + " - " + connection.getResponseMessage());
-                wasError = true;
-            }
-
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-            log.warn("ошибка - неверно сформированный url");
-            wasError = true;
-
-        } catch (IOException e) {
-            e.printStackTrace();
-            log.warn("ошибка - ошибка ввода вывода");
-            wasError = true;
-
-        } finally {
-            if (connection != null) {
-                connection.disconnect();
-            }
-        }
 
 
-        if (wasError) {
-            return null;
-        }
 
-        return result.toString();
-    }
-
-
-    private String getSID() {
-        String res = sendRequest(String.format(URL_GET_SID, this.token));
-
-        // распарсим ответ
-        JsonObject jsonObject = new JsonParser().parse(res).getAsJsonObject();
-
-        // произошла ошибка
-        if (jsonObject.has("error")) {
-            log.warn("ошибка при получении sid");
-            log.warn(res);
-            return null;
-        }
-
-        // ищем sid - не найден
-        if (!jsonObject.has("eid")) {
-            log.warn("ошибка при получении sid");
-            log.warn("в структуре ответа не найден элемент eid");
-            return null;
-        }
-
-        return jsonObject.get("eid").getAsString();
-    }
-
-
-    private String getDataFromWln(String url, boolean useSid) {
-
-        if (useSid) {
-            this.sid = getSID();
-        }
-
-        return sendRequest(String.format(url, this.sid));
-    }
-
-
-    // этот сервис используется для получения информации об объекте, в приложении он будет задействован
+    // этот сервис используется для обновления информации об объектах в базе данных из виалона
     // для наполнения/обновления таблицы, используемой при запросах с мобильных устройств
-    // чтобы уменьшить частоту запросов к исходному серверу
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/getobject/{id}")
-    public Response getObjectsInfo(@PathParam("id") String id) {
+    @Path("/refreshobj/{invnom}")
+    public Response refreshObjectsInDatabase(@PathParam("invnom") String invnom) {
 
-        if ((id == null) || (id.equals(""))) {
-            return Response.ok("{}").build();
+        if ((invnom == null) || (invnom.equals(""))) {
+            return Response.ok("{\"status\":\"error\", \"description\":\"object id (invnom) is empty\"}").build();
         }
 
+        Transport searchTr = null; // переменная пригодится
+
+
         String result = "";
-        if (id.equals("all")) {
-            result = getDataFromWln(URL_GET_ALLOBJS, true);
+        if (invnom.equals("all")) {
+            result = WebRequestUtil.getDataFromWln(URL_GET_ALLOBJS, true);
         } else {
-            result = getDataFromWln(URL_GET_ONEOBJ.replace("__search_value__", id), true);
+            // тут придется найти наш элемент в базе и узнать его wlnid если он есть
+            searchTr = trService.findTransportByInvnom(invnom);
+
+            if (searchTr != null) {
+                result = WebRequestUtil.getDataFromWln(URL_GET_ONEOBJ.replace("__search_value__", searchTr.getWlnid()), true);
+            } else {
+                return Response.ok("{\"status\":\"error\", \"description\":\"object with invnom = " + invnom + " not found in database\"}").build();
+            }
+
         }
 
         // преобразуем ответ в json
@@ -177,30 +83,24 @@ public class Tester {
             int itemsSize = resItemsJsonArr.size();
             for (int i = 0; i < itemsSize; i++) {
 
-
                 Transport tr = ConverterUtil.getTransportFromJson(resItemsJsonArr.get(i).getAsJsonObject());
                 log.warn(tr.getModel() + " " + tr.getRegistrationplate());
                 log.warn("инвентарный номер: " + tr.getAtinvnom());
 
-                Transport searchTr = trService.findTransportByInvnom(tr.getAtinvnom());
-
-
+                searchTr = trService.findTransportByInvnom(tr.getAtinvnom());
 
                 if (searchTr != null) {
                     tr.setId(searchTr.getId());
                     trService.update(tr);
                 } else {
-                    //trService.create(tr);
+                    trService.create(tr);
                 }
 
             }
 
-
         }
 
-
-        return Response.ok(result).build();
-
+        return Response.ok("{\"status\":\"OK\", \"description\":\"object with invnom = " + invnom + " updated\"}").build();
     }
 
     @GET
@@ -220,7 +120,7 @@ public class Tester {
         url = url.replace("__date_begin__", datebegin);
         url = url.replace("__date_end__", dateend);
 
-        String result = getDataFromWln(url, true);
+        String result = WebRequestUtil.getDataFromWln(url, true);
 
         return Response.ok(result).build();
 

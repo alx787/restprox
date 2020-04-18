@@ -4,9 +4,13 @@ $TOMCAT_HOME/conf/server.xml
           auth="Container"
           type="javax.sql.DataSource"
           driverClassName="com.mysql.jdbc.Driver"
-          url="jdbc:mysql://localhost:3306/restproxdb"
+          url="jdbc:mysql://localhost:3306/restproxdb?serverTimezone=UTC"
           username="rpuser" password="rppass" />
 
+
+new driver classname
+
+com.mysql.cj.jdbc.Driver
 
 
 $TOMCAT_HOME/conf/context.xml

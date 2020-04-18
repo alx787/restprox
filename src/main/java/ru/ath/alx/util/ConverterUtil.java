@@ -75,6 +75,51 @@ public class ConverterUtil {
 
         }
 
+        // проверить на заполненность реквизиты
+        if (newTr.getVehicletype() == null) {
+            newTr.setVehicletype("");
+        }
+
+        if (newTr.getVin() == null) {
+            newTr.setVin("");
+        }
+
+        if (newTr.getBrand() == null) {
+            newTr.setBrand("");
+        }
+
+        if (newTr.getModel() == null) {
+            newTr.setModel("");
+        }
+
+        if (newTr.getProdyear() == null) {
+            newTr.setProdyear("");
+        }
+
+        if (newTr.getColor() == null) {
+            newTr.setColor("");
+        }
+
+        if (newTr.getEnginemodel() == null) {
+            newTr.setEnginemodel("");
+        }
+
+        if (newTr.getPrimaryfueltype() == null) {
+            newTr.setPrimaryfueltype("");
+        }
+
+        if (newTr.getEnginepower() == null) {
+            newTr.setEnginepower("");
+        }
+
+        if (newTr.getGrossvehicleweight() == null) {
+            newTr.setGrossvehicleweight("");
+        }
+
+        if (newTr.getRegistrationplate() == null) {
+            newTr.setRegistrationplate("");
+        }
+
         // произвольные поля
         pfldsJsonObj = jsonDataObj.get("flds").getAsJsonObject();
 
@@ -88,6 +133,9 @@ public class ConverterUtil {
 
             switch (pn) {
                 case "ИНВ.НОМЕР":
+                    newTr.setAtinvnom(pv);
+                    break;
+                case "ИНВ. НОМЕР":
                     newTr.setAtinvnom(pv);
                     break;
                 case "ДАТА УСТАНОВКИ":
@@ -116,6 +164,40 @@ public class ConverterUtil {
 
             }
 
+
+        }
+
+        // проверить на заполненность дополнительные поля
+        if (newTr.getAtinvnom() == null) {
+            newTr.setAtinvnom("");
+        }
+
+        if (newTr.getAtinstalldate() == null) {
+            newTr.setAtinstalldate("");
+        }
+
+        if (newTr.getAtwheelformula() == null) {
+            newTr.setAtwheelformula("");
+        }
+
+        if (newTr.getAtdepartment() == null) {
+            newTr.setAtdepartment("");
+        }
+
+        if (newTr.getAtautocol() == null) {
+            newTr.setAtautocol("");
+        }
+
+        if (newTr.getAtlocation() == null) {
+            newTr.setAtlocation("");
+        }
+
+        if (newTr.getAtbase() == null) {
+            newTr.setAtbase("");
+        }
+
+        if (newTr.getAtres() == null) {
+            newTr.setAtres("");
         }
 
         return newTr;
