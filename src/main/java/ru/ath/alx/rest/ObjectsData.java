@@ -103,6 +103,43 @@ public class ObjectsData {
     }
 
 
+    // обновление записи об объекте в таблице бд по идентификатору записи из виалона
+    // если записи в таблице нет то она создается по данным притянутым из виалона
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/refreshobjbywlnid/{wlnid}")
+    public Response refreshObjectsInDatabaseByWlnid(@PathParam("wlnid") String wlnid) {
+        if ((wlnid == null) || (wlnid.equals(""))) {
+            return Response.ok("{\"status\":\"error\", \"description\":\"object wlnid is empty\"}").build();
+        }
+
+        String result = WebRequestUtil.getDataFromWln(URL_GET_ONEOBJ.replace("__search_value__", wlnid), null);
+
+        // преобразуем ответ в json
+        JsonObject resJsonObj = new JsonParser().parse(result).getAsJsonObject();
+        if (resJsonObj.has("items")) {
+            JsonArray resItemsJsonArr = resJsonObj.getAsJsonArray("items");
+
+            int itemsSize = resItemsJsonArr.size();
+            if (itemsSize == 1) {
+                Transport tr = ConverterUtil.getTransportFromJson(resItemsJsonArr.get(0).getAsJsonObject());
+
+                Transport searchTr = trService.findTransportByInvnom(tr.getAtinvnom());
+
+                if (searchTr != null) {
+                    tr.setId(searchTr.getId());
+                    trService.update(tr);
+                } else {
+                    trService.create(tr);
+                }
+            }
+        }
+
+        return Response.ok("{}").build();
+
+    }
+
+
     // получение данных об объекте
     // source - источник выборки db - база данных, net - виалон
     // invnom - что включать в выборку - либо инвентарный, либо все ("all")
