@@ -18,6 +18,32 @@ public class ConverterUtil {
 
         Transport newTr = new Transport();
 
+        // инициализируем все
+
+        // реквизиты
+        newTr.setVehicletype("");
+        newTr.setVin("");
+        newTr.setBrand("");
+        newTr.setModel("");
+        newTr.setProdyear("");
+        newTr.setColor("");
+        newTr.setEnginemodel("");
+        newTr.setPrimaryfueltype("");
+        newTr.setEnginepower("");
+        newTr.setGrossvehicleweight("");
+        newTr.setRegistrationplate("");
+
+        // дополнительные поля
+        newTr.setAtinvnom("");
+        newTr.setAtinstalldate("");
+        newTr.setAtwheelformula("");
+        newTr.setAtdepartment("");
+        newTr.setAtautocol("");
+        newTr.setAtlocation("");
+        newTr.setAtbase("");
+        newTr.setAtres("");
+
+
         // wln id
         newTr.setWlnid(jsonDataObj.get("id").getAsString());
         // гос номер nm
@@ -75,51 +101,6 @@ public class ConverterUtil {
 
         }
 
-        // проверить на заполненность реквизиты
-        if (newTr.getVehicletype() == null) {
-            newTr.setVehicletype("");
-        }
-
-        if (newTr.getVin() == null) {
-            newTr.setVin("");
-        }
-
-        if (newTr.getBrand() == null) {
-            newTr.setBrand("");
-        }
-
-        if (newTr.getModel() == null) {
-            newTr.setModel("");
-        }
-
-        if (newTr.getProdyear() == null) {
-            newTr.setProdyear("");
-        }
-
-        if (newTr.getColor() == null) {
-            newTr.setColor("");
-        }
-
-        if (newTr.getEnginemodel() == null) {
-            newTr.setEnginemodel("");
-        }
-
-        if (newTr.getPrimaryfueltype() == null) {
-            newTr.setPrimaryfueltype("");
-        }
-
-        if (newTr.getEnginepower() == null) {
-            newTr.setEnginepower("");
-        }
-
-        if (newTr.getGrossvehicleweight() == null) {
-            newTr.setGrossvehicleweight("");
-        }
-
-        if (newTr.getRegistrationplate() == null) {
-            newTr.setRegistrationplate("");
-        }
-
         // произвольные поля
         pfldsJsonObj = jsonDataObj.get("flds").getAsJsonObject();
 
@@ -164,42 +145,39 @@ public class ConverterUtil {
 
             }
 
-
-        }
-
-        // проверить на заполненность дополнительные поля
-        if (newTr.getAtinvnom() == null) {
-            newTr.setAtinvnom("");
-        }
-
-        if (newTr.getAtinstalldate() == null) {
-            newTr.setAtinstalldate("");
-        }
-
-        if (newTr.getAtwheelformula() == null) {
-            newTr.setAtwheelformula("");
-        }
-
-        if (newTr.getAtdepartment() == null) {
-            newTr.setAtdepartment("");
-        }
-
-        if (newTr.getAtautocol() == null) {
-            newTr.setAtautocol("");
-        }
-
-        if (newTr.getAtlocation() == null) {
-            newTr.setAtlocation("");
-        }
-
-        if (newTr.getAtbase() == null) {
-            newTr.setAtbase("");
-        }
-
-        if (newTr.getAtres() == null) {
-            newTr.setAtres("");
         }
 
         return newTr;
+    }
+
+    public static JsonObject getJsonObjFromTransport(Transport tr) {
+        JsonObject trJson = new JsonObject();
+
+        trJson.addProperty("id", tr.getId());
+
+         // реквизиты
+        trJson.addProperty("vehicletype", tr.getVehicletype());
+        trJson.addProperty("vin", tr.getVin());
+        trJson.addProperty("brand", tr.getBrand());
+        trJson.addProperty("model", tr.getModel());
+        trJson.addProperty("prodyear", tr.getProdyear());
+        trJson.addProperty("color", tr.getColor());
+        trJson.addProperty("enginemodel", tr.getEnginemodel());
+        trJson.addProperty("primaryfueltype", tr.getPrimaryfueltype());
+        trJson.addProperty("enginepower", tr.getEnginepower());
+        trJson.addProperty("grossvehicleweight", tr.getGrossvehicleweight());
+        trJson.addProperty("registrationplate", tr.getRegistrationplate());
+
+        // дополнительные поля
+        trJson.addProperty("atinvnom", tr.getAtinvnom());
+        trJson.addProperty("atinstalldate", tr.getAtinstalldate());
+        trJson.addProperty("atwheelformula", tr.getAtwheelformula());
+        trJson.addProperty("atdepartment", tr.getAtdepartment());
+        trJson.addProperty("atautocol", tr.getAtautocol());
+        trJson.addProperty("atlocation", tr.getAtlocation());
+        trJson.addProperty("atbase", tr.getAtbase());
+        trJson.addProperty("atres", tr.getAtres());
+
+        return trJson;
     }
 }

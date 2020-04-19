@@ -34,7 +34,7 @@ public class WebRequestUtil {
             connection.setRequestProperty("charset", "UTF-8");
             connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
 
-            log.warn(connection.toString());
+            //log.warn(connection.toString());
 
             int responseCode = connection.getResponseCode();
 
@@ -78,7 +78,7 @@ public class WebRequestUtil {
     }
 
 
-    private static String getSID() {
+    public static String getSID() {
         String res = sendRequest(String.format(URL_GET_SID, token));
 
         // распарсим ответ
@@ -101,16 +101,20 @@ public class WebRequestUtil {
         return jsonObject.get("eid").getAsString();
     }
 
+    // получение данных из виалона
+    // sid - идентификатор сессии, если он заполнен то используется именно он, если не заполнен то получаем новый и используем его
 
-    public static String getDataFromWln(String url, boolean useSid) {
+    public static String getDataFromWln(String url, String sid) {
 
-        String sid = "";
+        String pSid = "";
 
-        if (useSid) {
-            sid = getSID();
+        if ((sid == null) || (sid.equals(""))) {
+            pSid = getSID();
+        } else {
+            pSid = sid;
         }
 
-        return sendRequest(String.format(url, sid));
+        return sendRequest(String.format(url, pSid));
     }
 
 
