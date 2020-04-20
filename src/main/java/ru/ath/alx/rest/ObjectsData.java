@@ -62,12 +62,20 @@ public class ObjectsData {
         String result = "";
         if (invnom.equals("all")) {
             result = WebRequestUtil.getDataFromWln(URL_GET_ALLOBJS, null);
+            if (result == null) {
+                return Response.ok("{\"status\":\"error\", \"description\":\"сервер вернул ошибку\"}").build();
+            }
+
         } else {
             // тут придется найти наш элемент в базе и узнать его wlnid если он есть
             searchTr = trService.findTransportByInvnom(invnom);
 
             if (searchTr != null) {
                 result = WebRequestUtil.getDataFromWln(URL_GET_ONEOBJ.replace("__search_value__", searchTr.getWlnid()), null);
+                if (result == null) {
+                    return Response.ok("{\"status\":\"error\", \"description\":\"сервер вернул ошибку\"}").build();
+                }
+
             } else {
                 return Response.ok("{\"status\":\"error\", \"description\":\"object with invnom = " + invnom + " not found in database\"}").build();
             }
@@ -105,6 +113,7 @@ public class ObjectsData {
 
     // обновление записи об объекте в таблице бд по идентификатору записи из виалона
     // если записи в таблице нет то она создается по данным притянутым из виалона
+    // если запись есть то она обновляется
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/refreshobjbywlnid/{wlnid}")
@@ -114,6 +123,10 @@ public class ObjectsData {
         }
 
         String result = WebRequestUtil.getDataFromWln(URL_GET_ONEOBJ.replace("__search_value__", wlnid), null);
+        if (result == null) {
+            return Response.ok("{\"status\":\"error\", \"description\":\"сервер вернул ошибку\"}").build();
+        }
+
 
         // преобразуем ответ в json
         JsonObject resJsonObj = new JsonParser().parse(result).getAsJsonObject();
@@ -124,7 +137,7 @@ public class ObjectsData {
             if (itemsSize == 1) {
                 Transport tr = ConverterUtil.getTransportFromJson(resItemsJsonArr.get(0).getAsJsonObject());
 
-                Transport searchTr = trService.findTransportByInvnom(tr.getAtinvnom());
+                Transport searchTr = trService.findTransportByInWlnid(tr.getWlnid());
 
                 if (searchTr != null) {
                     tr.setId(searchTr.getId());
@@ -135,7 +148,7 @@ public class ObjectsData {
             }
         }
 
-        return Response.ok("{}").build();
+        return Response.ok("{\"status\":\"OK\", \"description\":\"object with wlnid = " + wlnid + " updated\"}").build();
 
     }
 
@@ -190,6 +203,10 @@ public class ObjectsData {
             String result = "";
             if (pInvnom.equals("all")) {
                 result = WebRequestUtil.getDataFromWln(URL_GET_ALLOBJS, null);
+                if (result == null) {
+                    return Response.ok("{\"status\":\"error\", \"description\":\"сервер вернул ошибку\"}").build();
+                }
+
             } else {
                 // тут придется найти наш элемент в базе и узнать его wlnid если он есть
                 Transport searchTr = trService.findTransportByInvnom(invnom);

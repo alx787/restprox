@@ -16,4 +16,6 @@ public interface TransportDao {
     Transport findTransportById(int id);
 
     Transport findTransportByInvnom(String invnom);
+
+    Transport findTransportByWlnid(String wlnid);
 }

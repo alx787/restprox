@@ -36,5 +36,8 @@ public class TransportService {
         return transportDao.findTransportByInvnom(invnom);
     }
 
+    public Transport findTransportByInWlnid(String wlnid) {
+        return transportDao.findTransportByWlnid(wlnid);
+    }
 
 }

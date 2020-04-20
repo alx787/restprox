@@ -11,8 +11,6 @@ import java.util.List;
 
 public class TransportDaoImpl implements TransportDao {
 
-
-
     @Override
     public void create(Transport transport) {
         Session session = HibernateUtil.getSessionFactory().openSession();
@@ -60,8 +58,21 @@ public class TransportDaoImpl implements TransportDao {
         Session session = HibernateUtil.getSessionFactory().openSession();
         Query query = session.createQuery("FROM Transport T WHERE T.atinvnom = :paraminv");
         query.setParameter("paraminv", invnom);
-//        Query query = session.createQuery("FROM Transport T WHERE T.atinvnom = ?1");
-//        query.setParameter(1, invnom, StringType.INSTANCE);
+        List<Transport> transports = query.list();
+        session.close();
+
+        if (transports.size() == 1) {
+            return transports.get(0);
+        }
+
+        return null;
+    }
+
+    @Override
+    public Transport findTransportByWlnid(String wlnid) {
+        Session session = HibernateUtil.getSessionFactory().openSession();
+        Query query = session.createQuery("FROM Transport T WHERE T.wlnid = :paramwlnid");
+        query.setParameter("paramwlnid", wlnid);
         List<Transport> transports = query.list();
         session.close();
 

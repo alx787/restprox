@@ -1,5 +1,8 @@
 package ru.ath.alx.rest;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import org.apache.log4j.Logger;
 import ru.ath.alx.dao.TransportService;
 import ru.ath.alx.model.Transport;
@@ -25,6 +28,8 @@ public class ObjectsTracks {
 
     // получить общие данные о пробеге
     private static final String URL_GET_TRACK = "https://wialon.kiravto.ru/wialon/ajax.html?svc=report/exec_report&params={\"reportResourceId\":__report_id__,\"reportTemplateId\":__template_id__,\"reportObjectId\":__object_id__,\"reportObjectSecId\":0,\"reportObjectIdList\":[],\"interval\":{\"from\":__date_begin__,\"to\":__date_end__,\"flags\":0}}&sid=%s";
+    // получить таблицу пробегов
+    private static final String URL_GET_TABLE = "https://wialon.kiravto.ru/wialon/ajax.html?&svc=report/get_result_rows&params={\"tableIndex\":__table_index__,\"indexFrom\":__first_row__,\"indexTo\":__last_row__}&sid=%s";
 
     private TransportService trService = new TransportService();
 
@@ -71,30 +76,87 @@ public class ObjectsTracks {
             return Response.ok("{\"status\":\"error\", \"description\":\"ошибка получения периода, дата начала: " + datebegin + ", дата окончания: " + dateend + "\"}").build();
         }
 
+        // часовой пояс
         int timeZone = 3;
 
         long lBeginTime = pDateBegin.getTime() / 1000 - 3600 * timeZone;
-        long lEndTime = pDateEnd.getTime() / 1000 - 3600 * timeZone;
+        long lEndTime = pDateEnd.getTime() / 1000 - 3600 * timeZone + 86399;
 
 
         String reportId = "2352";
         String templateId = "2"; // 1САТХ МРСК
 
 
+        //////////////////////////////////////////////////////
         // получим ид сессии
+        //////////////////////////////////////////////////////
         String sid = WebRequestUtil.getSID();
 
         // очистим сессию
         //WebRequestUtil.getDataFromWln(URL_CLEAR_SESSION, sid);
 
+        //////////////////////////////////////////////////////
+        // получим данные таблиц
+        //////////////////////////////////////////////////////
         String url = URL_GET_TRACK.replace("__report_id__", reportId);
         url = url.replace("__template_id__", templateId);
         url = url.replace("__object_id__", searchTr.getWlnid());
         url = url.replace("__date_begin__", String.valueOf(lBeginTime));
         url = url.replace("__date_end__", String.valueOf(lEndTime));
 
-        // получим данные таблиц
-        String result = WebRequestUtil.getDataFromWln(url, null);
+        //log.warn(url);
+
+        String result = WebRequestUtil.getDataFromWln(url, sid);
+        if (result == null) {
+            return Response.ok("{\"status\":\"error\", \"description\":\"сервер вернул ошибку\"}").build();
+        }
+
+        // прочитаем ответ, если не ошибка то продолжим далее
+        JsonObject resJsonObj = new JsonParser().parse(result).getAsJsonObject();
+        // проверка на ошибку
+        // произошла ошибка
+        if (resJsonObj.has("error")) {
+            log.warn("ошибка при получении данных таблиц пробегов, код ошибки " + resJsonObj.get("error").getAsString());
+            return Response.ok("{\"status\":\"error\", \"description\":\"ошибка при получении данных таблиц пробегов, код ошибки " + resJsonObj.get("error").getAsString() + "\"}").build();
+        }
+
+        // читаем данные таблицы ответа
+        JsonObject repResultJsonObj = resJsonObj.getAsJsonObject("reportResult");
+        JsonArray tablesJsonArr = repResultJsonObj.getAsJsonArray("tables");
+
+        String tableIndex = null; // номер таблицы
+        String cntRows = null;  // количество строк
+
+        for (int i = 0; i < tablesJsonArr.size(); i++) {
+
+            JsonObject tableJsonObj = tablesJsonArr.get(i).getAsJsonObject();
+            if (tableJsonObj.get("name").getAsString().equals("unit_trips")) {
+                tableIndex = String.valueOf(i);
+                cntRows = tableJsonObj.get("rows").getAsString();
+            }
+
+        }
+
+        // проверка
+        if ((tableIndex == null) || (cntRows == null)) {
+            log.warn("при получении данных таблиц пробегов не найдена таблица с именем unit_trips");
+            return Response.ok("{\"status\":\"error\", \"description\":\"при получении данных таблиц пробегов не найдена таблица с именем unit_trips\"}").build();
+        }
+
+        //////////////////////////////////////////////////////
+        // прочитаем таблицу пробегов
+        //////////////////////////////////////////////////////
+        url = URL_GET_TABLE.replace("__table_index__", tableIndex);
+        url = url.replace("__first_row__", "0");
+        url = url.replace("__last_row__", cntRows);
+
+        log.warn(url);
+
+        result = WebRequestUtil.getDataFromWln(url, sid);
+        if (result == null) {
+            return Response.ok("{\"status\":\"error\", \"description\":\"сервер вернул ошибку\"}").build();
+        }
+
 
         return Response.ok(result).build();
 
