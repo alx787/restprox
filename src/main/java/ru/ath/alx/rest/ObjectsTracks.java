@@ -30,6 +30,9 @@ public class ObjectsTracks {
     private static final String URL_GET_TRACK = "https://wialon.kiravto.ru/wialon/ajax.html?svc=report/exec_report&params={\"reportResourceId\":__report_id__,\"reportTemplateId\":__template_id__,\"reportObjectId\":__object_id__,\"reportObjectSecId\":0,\"reportObjectIdList\":[],\"interval\":{\"from\":__date_begin__,\"to\":__date_end__,\"flags\":0}}&sid=%s";
     // получить таблицу пробегов
     private static final String URL_GET_TABLE = "https://wialon.kiravto.ru/wialon/ajax.html?&svc=report/get_result_rows&params={\"tableIndex\":__table_index__,\"indexFrom\":__first_row__,\"indexTo\":__last_row__}&sid=%s";
+    // получить расшифровку пробега
+    private static final String URL_GET_TABLEROW = "https://wialon.kiravto.ru/wialon/ajax.html?svc=report/get_result_subrows&params={\"tableIndex\":__table_index__,\"rowIndex\":__row_index__}&sid=%s";
+
 
     private TransportService trService = new TransportService();
 
@@ -108,7 +111,7 @@ public class ObjectsTracks {
 
         String result = WebRequestUtil.getDataFromWln(url, sid);
         if (result == null) {
-            return Response.ok("{\"status\":\"error\", \"description\":\"сервер вернул ошибку\"}").build();
+            return Response.ok("{\"status\":\"error\", \"description\":\"сервер вернул ошибку при попытке получения результатов отчета\"}").build();
         }
 
         // прочитаем ответ, если не ошибка то продолжим далее
@@ -154,11 +157,98 @@ public class ObjectsTracks {
 
         result = WebRequestUtil.getDataFromWln(url, sid);
         if (result == null) {
-            return Response.ok("{\"status\":\"error\", \"description\":\"сервер вернул ошибку\"}").build();
+            return Response.ok("{\"status\":\"error\", \"description\":\"сервер вернул ошибку при попытке получения таблиц отчета\"}").build();
+        }
+
+        // прочитаем ответ, если не ошибка то продолжим далее
+        JsonArray resArr = new JsonParser().parse(result).getAsJsonArray();
+
+        String dlitelnost = "";
+        String motochas = "";
+        String probeg = "";
+
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd.MM.yyyy-HH:mm:ss");
+
+
+        for (int i = 0; i < resArr.size(); i++) {
+            JsonObject oneTrack = resArr.get(i).getAsJsonObject();
+            JsonArray oneTrackPropArr = oneTrack.get("c").getAsJsonArray();
+
+            dlitelnost = oneTrackPropArr.get(5).getAsString();
+            motochas = oneTrackPropArr.get(6).getAsString();
+            probeg = oneTrackPropArr.get(7).getAsString();
+
+            log.warn("длительность " + dlitelnost + " моточасы " + motochas + " пробег " + probeg);
+
+
+            // тут количество записей в расшифровке
+            String detailRowsCnt = oneTrack.get("d").getAsString();
+
+            //////////////////////////////////////////////////////
+            // получим записи расшифровки
+            //////////////////////////////////////////////////////
+            url = URL_GET_TABLEROW.replace("__table_index__", tableIndex);
+            url = url.replace("__row_index__", String.valueOf(i));
+
+            result = WebRequestUtil.getDataFromWln(url, sid);
+            if (result == null) {
+                return Response.ok("{\"status\":\"error\", \"description\":\"сервер вернул ошибку при попытке получения строк таблицы отчета\"}").build();
+            }
+
+            // прочитаем ответ, если не ошибка то продолжим далее
+            JsonArray resRowArr = new JsonParser().parse(result).getAsJsonArray();
+            for (int ii = 0; ii < resRowArr.size(); ii++) {
+                JsonObject oneResRow = resRowArr.get(ii).getAsJsonObject();
+
+                JsonArray oneResRowArr = oneResRow.get("c").getAsJsonArray();
+
+                String dDlitelnost = oneResRowArr.get(5).getAsString();
+                String dMotochas = oneResRowArr.get(6).getAsString();
+                String dPprobeg = oneResRowArr.get(7).getAsString();
+
+                String dBeg = oneResRow.get("t1").getAsString();
+                String dEnd = oneResRow.get("t2").getAsString();
+
+                Date dateBegin = new Date(Long.valueOf(dBeg) * 1000 + timeZone * 3600);
+                Date dateEnd = new Date(Long.valueOf(dEnd) * 1000 + timeZone * 3600);
+
+                String outPutStr = "время нач " + simpleDateFormat.format(dateBegin) + " время кон " + simpleDateFormat.format(dateEnd);
+                outPutStr = outPutStr + " длит " + dDlitelnost + " моточ " + dMotochas + " пробег " + dPprobeg;
+
+                log.warn(outPutStr);
+                // track/gettrack/76442/2020-04-19/2020-04-19
+
+            }
+
+
+
+            log.warn(result);
+
+
+//
+//            for (int ii = 0; ii < cntSubRows; ii++) {
+//                url = URL_GET_TABLEROW.replace("__table_index__", tableIndex);
+//                url = url.replace("__row_index__", String.valueOf(ii));
+//
+//                result = WebRequestUtil.getDataFromWln(url, sid);
+//                if (result == null) {
+//                    return Response.ok("{\"status\":\"error\", \"description\":\"сервер вернул ошибку при попытке получения строк таблицы отчета\"}").build();
+//                }
+//
+//                log.warn(result);
+//
+//
+//            }
+//
+
+
         }
 
 
-        return Response.ok(result).build();
+
+
+
+        return Response.ok("{}").build();
 
     }
 
