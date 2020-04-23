@@ -256,7 +256,7 @@ public class ObjectsData {
 
         // составляем ответ
         JsonObject answerobj = new JsonObject();
-        answerobj.addProperty("stasus", "OK");
+        answerobj.addProperty("status", "OK");
 
         JsonArray jsonTransportArr = new JsonArray();
 

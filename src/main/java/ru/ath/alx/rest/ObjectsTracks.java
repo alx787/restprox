@@ -70,6 +70,16 @@ public class ObjectsTracks {
         Date pDateEnd = null;
 
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+//        format.setTimeZone(java.util.TimeZone.getTimeZone("GMT+3"));
+        format.setTimeZone(java.util.TimeZone.getTimeZone("UTC"));
+
+//        log.warn("time zone");
+//        log.warn(format.getTimeZone().toString());
+
+//      для получения значений даты будем использовать временную зону UTC
+//      и корректировать на минус три часа
+
+
         try {
             pDateBegin = format.parse(datebegin);
             pDateEnd = format.parse(dateend);
@@ -84,6 +94,10 @@ public class ObjectsTracks {
 
         long lBeginTime = pDateBegin.getTime() / 1000 - 3600 * timeZone;
         long lEndTime = pDateEnd.getTime() / 1000 - 3600 * timeZone + 86399;
+
+//        log.warn("time convert");
+//        log.warn(String.valueOf(lBeginTime));
+//        log.warn(String.valueOf(lEndTime));
 
 
         String reportId = "2352";
@@ -225,21 +239,39 @@ public class ObjectsTracks {
             log.warn(result);
 
 
+            // формат ответа
+            // {
+            //      status OK
+            //      content : {
+//                        regnom :
+//                        wlnid :
+//                        invnom :
+//                        diration :
+//                        motohours :
+//                        probeg :
+//                        detail : [
+//                              {
+//                                  DateBeg:
+//                                  DateEnd:
+//                                  DateBeg:
+//                                  DateBeg:
+//                                  DateBeg:
+//                                  diration :
+            //                      motohours :
+//                                  probeg :
+//                                  placebeg :
+//                                  placeend :
+
+//                              },
+//                              {},{},{}
+
+//                        ]
 //
-//            for (int ii = 0; ii < cntSubRows; ii++) {
-//                url = URL_GET_TABLEROW.replace("__table_index__", tableIndex);
-//                url = url.replace("__row_index__", String.valueOf(ii));
-//
-//                result = WebRequestUtil.getDataFromWln(url, sid);
-//                if (result == null) {
-//                    return Response.ok("{\"status\":\"error\", \"description\":\"сервер вернул ошибку при попытке получения строк таблицы отчета\"}").build();
-//                }
-//
-//                log.warn(result);
-//
-//
-//            }
-//
+            //      }
+            //
+            // }
+
+
 
 
         }
