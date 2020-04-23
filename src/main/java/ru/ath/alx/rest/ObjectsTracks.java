@@ -1,5 +1,6 @@
 package ru.ath.alx.rest;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -14,6 +15,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -33,6 +35,8 @@ public class ObjectsTracks {
     // получить расшифровку пробега
     private static final String URL_GET_TABLEROW = "https://wialon.kiravto.ru/wialon/ajax.html?svc=report/get_result_subrows&params={\"tableIndex\":__table_index__,\"rowIndex\":__row_index__}&sid=%s";
 
+    // для преобразования float
+    private static DecimalFormat df = new DecimalFormat("0.00");
 
     private TransportService trService = new TransportService();
 
@@ -45,6 +49,9 @@ public class ObjectsTracks {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/gettrack/{invnom}/{datebegin}/{dateend}")
     public Response getObjectTrack(@PathParam("invnom") String invnom, @PathParam("datebegin") String datebegin, @PathParam("dateend") String dateend) {
+
+        ///////////////////////////////////////////////////
+        // тут всякие разные проверки переменных
         if ((invnom == null) || (invnom.equals(""))) {
             return Response.ok("{\"status\":\"error\", \"description\":\"object invnom is empty\"}").build();
         }
@@ -184,19 +191,24 @@ public class ObjectsTracks {
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd.MM.yyyy-HH:mm:ss");
 
 
+        float fTotalDuration = 0;
+        float fTotalMotohours = 0;
+        float fTotalProbeg = 0;
+
+        float fDuration = 0;
+        float fMotohours = 0;
+        float fProbeg = 0;
+
+        //////////////////////////////////
+        // массив json для детальных данных
+        JsonArray detailArr = new JsonArray();
+
         for (int i = 0; i < resArr.size(); i++) {
             JsonObject oneTrack = resArr.get(i).getAsJsonObject();
             JsonArray oneTrackPropArr = oneTrack.get("c").getAsJsonArray();
 
-            dlitelnost = oneTrackPropArr.get(5).getAsString();
-            motochas = oneTrackPropArr.get(6).getAsString();
-            probeg = oneTrackPropArr.get(7).getAsString();
-
-            log.warn("длительность " + dlitelnost + " моточасы " + motochas + " пробег " + probeg);
-
-
             // тут количество записей в расшифровке
-            String detailRowsCnt = oneTrack.get("d").getAsString();
+//            String detailRowsCnt = oneTrack.get("d").getAsString();
 
             //////////////////////////////////////////////////////
             // получим записи расшифровки
@@ -209,39 +221,81 @@ public class ObjectsTracks {
                 return Response.ok("{\"status\":\"error\", \"description\":\"сервер вернул ошибку при попытке получения строк таблицы отчета\"}").build();
             }
 
+
             // прочитаем ответ, если не ошибка то продолжим далее
             JsonArray resRowArr = new JsonParser().parse(result).getAsJsonArray();
             for (int ii = 0; ii < resRowArr.size(); ii++) {
+
                 JsonObject oneResRow = resRowArr.get(ii).getAsJsonObject();
 
                 JsonArray oneResRowArr = oneResRow.get("c").getAsJsonArray();
 
-                String dDlitelnost = oneResRowArr.get(5).getAsString();
-                String dMotochas = oneResRowArr.get(6).getAsString();
+                // получаем значения
+                // длительность
+                String dDuration = oneResRowArr.get(5).getAsString();
+                // моточасы
+                String dMotohours = oneResRowArr.get(6).getAsString();
+                // пробеги
                 String dPprobeg = oneResRowArr.get(7).getAsString();
 
+
+                // дата начала периода в юниксе
                 String dBeg = oneResRow.get("t1").getAsString();
+                // дата окончания периода в юниксе
                 String dEnd = oneResRow.get("t2").getAsString();
 
+                // преобразуем дату в тип Date
                 Date dateBegin = new Date(Long.valueOf(dBeg) * 1000 + timeZone * 3600);
                 Date dateEnd = new Date(Long.valueOf(dEnd) * 1000 + timeZone * 3600);
 
                 String outPutStr = "время нач " + simpleDateFormat.format(dateBegin) + " время кон " + simpleDateFormat.format(dateEnd);
-                outPutStr = outPutStr + " длит " + dDlitelnost + " моточ " + dMotochas + " пробег " + dPprobeg;
+                outPutStr = outPutStr + " длит " + dDuration + " моточ " + dMotohours + " пробег " + dPprobeg;
 
                 log.warn(outPutStr);
-                // track/gettrack/76442/2020-04-19/2020-04-19
+
+
+                // получим значения часов и пробегов в числовом виде
+                fDuration = convertTime(dDuration);
+                fMotohours = convertTime(dMotohours);
+                fProbeg = 0;
+                try {
+                    fProbeg = Float.valueOf(dPprobeg.replace(" km", ""));
+                } catch (Exception e) {
+
+                }
+
+                // суммируем значения
+                fTotalDuration = fTotalDuration + fDuration;
+                fTotalMotohours = fTotalMotohours + fMotohours;
+                fTotalProbeg = fTotalProbeg + fProbeg;
+
+
+                //////////////////////////////////////////////////////
+                // элемент детализации
+                //////////////////////////////////////////////////////
+                JsonObject detailElem = new JsonObject();
+                detailElem.addProperty("datebeg", simpleDateFormat.format(dateBegin));
+                detailElem.addProperty("dateend", simpleDateFormat.format(dateEnd));
+                detailElem.addProperty("duration", df.format(fDuration));
+                detailElem.addProperty("motohours", df.format(fMotohours));
+//                detailElem.addProperty("probeg", df.format(fProbeg));
+                detailElem.addProperty("probeg", String.format("%.2f", fProbeg));
+
+                detailArr.add(detailElem);
+
+                log.warn(df.format(fProbeg));
+                log.warn(String.format("%.2f", fProbeg));
+
 
             }
 
 
-
-            log.warn(result);
+            // log.warn(result);
 
 
             // формат ответа
             // {
-            //      status OK
+            //      status: OK
             //      content : {
 //                        regnom :
 //                        wlnid :
@@ -253,11 +307,8 @@ public class ObjectsTracks {
 //                              {
 //                                  DateBeg:
 //                                  DateEnd:
-//                                  DateBeg:
-//                                  DateBeg:
-//                                  DateBeg:
 //                                  diration :
-            //                      motohours :
+//                                  motohours :
 //                                  probeg :
 //                                  placebeg :
 //                                  placeend :
@@ -272,17 +323,77 @@ public class ObjectsTracks {
             // }
 
 
-
-
         }
 
 
+        ///////////////////////////////////////////////////////
+        // здесь начнем формирование JSON объекта ответа
+        ///////////////////////////////////////////////////////
+
+        JsonObject contentObj = new JsonObject();
+
+        contentObj.addProperty("regnom", searchTr.getRegistrationplate());
+        contentObj.addProperty("wlnid", searchTr.getWlnid());
+        contentObj.addProperty("invnom", searchTr.getAtinvnom());
+        contentObj.addProperty("duration", df.format(fTotalDuration));
+        contentObj.addProperty("motohours", df.format(fTotalMotohours));
+        contentObj.addProperty("probeg", df.format(fTotalProbeg));
+        contentObj.add("detail", detailArr);
+
+        JsonObject answerObj = new JsonObject();
+        answerObj.addProperty("status", "OK");
+        answerObj.add("content", contentObj);
 
 
+        Gson gson = new Gson();
 
-        return Response.ok("{}").build();
+        return Response.ok(gson.toJson(answerObj)).build();
 
+        // запрос
+        // track/gettrack/76442/2020-04-19/2020-04-19
+        // wl/refreshobjbywlnid/1187
     }
 
+
+    // получает строковое представление количество часов вида "0.00" из строки вида "00:00:00"
+    private float convertTime(String sDlit) {
+
+//        DecimalFormat df = new DecimalFormat("0.00");
+
+        if (sDlit.isEmpty()) {
+            return 0;
+        }
+
+        String[] arrStr = sDlit.split(":");
+
+        if (arrStr.length != 3) {
+            return 0;
+        }
+
+        float timeInHours = 0;
+
+        try {
+            float hour = 0;
+            if (!arrStr[0].isEmpty()) {
+                hour = Float.valueOf(arrStr[0]);
+            }
+
+            float min = 0;
+            if (!arrStr[1].isEmpty()) {
+                min = Float.valueOf(arrStr[1]);
+            }
+
+            float sec = 0;
+            if (!arrStr[2].isEmpty()) {
+                sec = Float.valueOf(arrStr[2]);
+            }
+
+            timeInHours = hour + min / 60; // на секунды забьем
+        } catch (Exception e) {
+
+        }
+//        return df.format(timeInHours);
+        return timeInHours;
+    }
 
 }
