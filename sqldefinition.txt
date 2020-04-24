@@ -29,3 +29,9 @@ CREATE TABLE restproxdb.transport (
 	INDEX (wlnid (10)),
 	INDEX (atinvnom (10))
 )  ENGINE = INNODB DEFAULT CHARSET = utf8 COLLATE = utf8_general_ci;
+
+CREATE TABLE restproxdb.auth (
+	id INT (10) UNSIGNED NOT NULL AUTO_INCREMENT,
+	token VARCHAR (100) DEFAULT '' NOT NULL,
+	PRIMARY KEY (id)
+)  ENGINE = INNODB DEFAULT CHARSET = utf8 COLLATE = utf8_general_ci;

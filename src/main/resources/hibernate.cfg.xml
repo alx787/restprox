@@ -27,6 +27,7 @@
         <!--and will be:  Initial SessionFactory failedorg.hibernate.service.spi.ServiceException: Unable to create requested service-->
 
         <mapping class="ru.ath.alx.model.Transport"/>
+        <mapping class="ru.ath.alx.model.Auth"/>
         <!--<mapping resource="ru/ath/alx/model/Transport.hbm.xml"/>-->
     </session-factory>
 </hibernate-configuration>

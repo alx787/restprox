@@ -16,7 +16,7 @@ public class WebRequestUtil {
 
     private static final Logger log = Logger.getLogger(WebRequestUtil.class);
 
-    private static String token = "";
+        private static String token = "";
 //    private String sid = "";
 
     // получить сид

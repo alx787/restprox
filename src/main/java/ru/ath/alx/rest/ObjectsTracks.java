@@ -16,9 +16,11 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 
 @Path("/track")
 public class ObjectsTracks {
@@ -35,10 +37,9 @@ public class ObjectsTracks {
     // получить расшифровку пробега
     private static final String URL_GET_TABLEROW = "https://wialon.kiravto.ru/wialon/ajax.html?svc=report/get_result_subrows&params={\"tableIndex\":__table_index__,\"rowIndex\":__row_index__}&sid=%s";
 
-    // для преобразования float
-    private static DecimalFormat df = new DecimalFormat("0.00");
 
     private TransportService trService = new TransportService();
+
 
 
     // получаем данные о пробеге тс
@@ -174,7 +175,7 @@ public class ObjectsTracks {
         url = url.replace("__first_row__", "0");
         url = url.replace("__last_row__", cntRows);
 
-        log.warn(url);
+//        log.warn(url);
 
         result = WebRequestUtil.getDataFromWln(url, sid);
         if (result == null) {
@@ -183,10 +184,6 @@ public class ObjectsTracks {
 
         // прочитаем ответ, если не ошибка то продолжим далее
         JsonArray resArr = new JsonParser().parse(result).getAsJsonArray();
-
-        String dlitelnost = "";
-        String motochas = "";
-        String probeg = "";
 
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd.MM.yyyy-HH:mm:ss");
 
@@ -199,13 +196,24 @@ public class ObjectsTracks {
         float fMotohours = 0;
         float fProbeg = 0;
 
+
+        // для преобразования float
+        Locale locale = new Locale("en", "US");
+
+        DecimalFormatSymbols symbols = new DecimalFormatSymbols(locale);
+        symbols.setDecimalSeparator('.');
+
+        DecimalFormat df = new DecimalFormat("0.00", symbols);
+
+
+
         //////////////////////////////////
         // массив json для детальных данных
         JsonArray detailArr = new JsonArray();
 
         for (int i = 0; i < resArr.size(); i++) {
             JsonObject oneTrack = resArr.get(i).getAsJsonObject();
-            JsonArray oneTrackPropArr = oneTrack.get("c").getAsJsonArray();
+//            JsonArray oneTrackPropArr = oneTrack.get("c").getAsJsonArray();
 
             // тут количество записей в расшифровке
 //            String detailRowsCnt = oneTrack.get("d").getAsString();
@@ -248,10 +256,10 @@ public class ObjectsTracks {
                 Date dateBegin = new Date(Long.valueOf(dBeg) * 1000 + timeZone * 3600);
                 Date dateEnd = new Date(Long.valueOf(dEnd) * 1000 + timeZone * 3600);
 
-                String outPutStr = "время нач " + simpleDateFormat.format(dateBegin) + " время кон " + simpleDateFormat.format(dateEnd);
-                outPutStr = outPutStr + " длит " + dDuration + " моточ " + dMotohours + " пробег " + dPprobeg;
-
-                log.warn(outPutStr);
+//                String outPutStr = "время нач " + simpleDateFormat.format(dateBegin) + " время кон " + simpleDateFormat.format(dateEnd);
+//                outPutStr = outPutStr + " длит " + dDuration + " моточ " + dMotohours + " пробег " + dPprobeg;
+//
+//                log.warn(outPutStr);
 
 
                 // получим значения часов и пробегов в числовом виде
@@ -269,7 +277,6 @@ public class ObjectsTracks {
                 fTotalMotohours = fTotalMotohours + fMotohours;
                 fTotalProbeg = fTotalProbeg + fProbeg;
 
-
                 //////////////////////////////////////////////////////
                 // элемент детализации
                 //////////////////////////////////////////////////////
@@ -279,18 +286,14 @@ public class ObjectsTracks {
                 detailElem.addProperty("duration", df.format(fDuration));
                 detailElem.addProperty("motohours", df.format(fMotohours));
 //                detailElem.addProperty("probeg", df.format(fProbeg));
-                detailElem.addProperty("probeg", String.format("%.2f", fProbeg));
+                detailElem.addProperty("probeg", df.format(fProbeg));
 
                 detailArr.add(detailElem);
 
-                log.warn(df.format(fProbeg));
-                log.warn(String.format("%.2f", fProbeg));
-
+//                log.warn(df.format(fProbeg));
+//                log.warn(String.format("%.2f", fProbeg));
 
             }
-
-
-            // log.warn(result);
 
 
             // формат ответа
