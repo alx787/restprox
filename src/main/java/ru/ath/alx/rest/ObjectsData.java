@@ -28,12 +28,6 @@ public class ObjectsData {
 
     private static final Logger log = Logger.getLogger(ObjectsData.class);
 
-    private String token = "a2146922f0785ff8de16107355d6a993EC8CB5E823A23AB32ABBCF31000D551C96C22E29";
-    private String sid = "";
-
-
-    // получить сид
-//    private static final String URL_GET_SID = "https://wialon.kiravto.ru/wialon/ajax.html?svc=token/login&params={\"token\":\"%s\"}";
     // получить все объекты
     private static final String URL_GET_ALLOBJS = "https://wialon.kiravto.ru/wialon/ajax.html?svc=core/search_items&params={\"spec\":{\"itemsType\":\"avl_unit\",\"propName\":\"sys_name\",\"propValueMask\":\"*\",\"sortType\":\"sys_name\"},\"force\":1,\"flags\":\"0x00800109\",\"from\":0,\"to\":0}&sid=%s";
     // получить данные по одному объекту

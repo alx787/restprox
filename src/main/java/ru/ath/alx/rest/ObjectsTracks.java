@@ -9,10 +9,7 @@ import ru.ath.alx.dao.TransportService;
 import ru.ath.alx.model.Transport;
 import ru.ath.alx.util.WebRequestUtil;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.text.DecimalFormat;
@@ -46,10 +43,14 @@ public class ObjectsTracks {
     // invnom - инвентарный номер
     // datebegin - дата начала в формате гггг-мм-дд
     // dateend - дата окончания в формате гггг-мм-дд
+    // sid - идентификатор сессии, используется если для получения данных используется существующая сессия, если не задан то будет создана новая
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/gettrack/{invnom}/{datebegin}/{dateend}")
-    public Response getObjectTrack(@PathParam("invnom") String invnom, @PathParam("datebegin") String datebegin, @PathParam("dateend") String dateend) {
+    @Path("/gettrack/{invnom}/{datebegin}/{dateend}{sid:(/sid/[^/]+?)?}")
+    public Response getObjectTrack(@PathParam("invnom") String invnom,
+                                   @PathParam("datebegin") String datebegin,
+                                   @PathParam("dateend") String dateend,
+                                   @PathParam("sid") String sid) {
 
         ///////////////////////////////////////////////////
         // тут всякие разные проверки переменных
@@ -115,7 +116,26 @@ public class ObjectsTracks {
         //////////////////////////////////////////////////////
         // получим ид сессии
         //////////////////////////////////////////////////////
-        String sid = WebRequestUtil.getSID();
+        // если значение sid явно передано то оно передается в переменную
+        // со значением в виде /sid/25b134f557133e6bcc5943fd4bd4df01
+        // поэтому его надо вытаскивать через split
+
+        //log.warn("sid " + sid);
+
+        if ((sid == null) || (sid.equals("")))  {
+            sid = WebRequestUtil.getSID();
+        } else {
+            // попытаемся очистить сессию
+            String[] sidArr = sid.split("/");
+            if (sidArr.length == 3) {
+//                log.warn("sid " + sidArr[2]);
+                sid = sidArr[2];
+                WebRequestUtil.getDataFromWln(URL_CLEAR_SESSION, sid);
+            } else {
+                sid = WebRequestUtil.getSID();
+            }
+
+        }
 
         // очистим сессию
         //WebRequestUtil.getDataFromWln(URL_CLEAR_SESSION, sid);
@@ -239,6 +259,13 @@ public class ObjectsTracks {
                 JsonArray oneResRowArr = oneResRow.get("c").getAsJsonArray();
 
                 // получаем значения
+                // место начала
+                JsonObject placeJson = oneResRowArr.get(2).getAsJsonObject();
+                String sPlaceBegin = placeJson.get("t").getAsString();
+
+                placeJson = oneResRowArr.get(4).getAsJsonObject();
+                String sPlaceEnd = placeJson.get("t").getAsString();
+
                 // длительность
                 String dDuration = oneResRowArr.get(5).getAsString();
                 // моточасы
@@ -283,6 +310,8 @@ public class ObjectsTracks {
                 JsonObject detailElem = new JsonObject();
                 detailElem.addProperty("datebeg", simpleDateFormat.format(dateBegin));
                 detailElem.addProperty("dateend", simpleDateFormat.format(dateEnd));
+                detailElem.addProperty("placebeg", sPlaceBegin);
+                detailElem.addProperty("placeend", sPlaceEnd);
                 detailElem.addProperty("duration", df.format(fDuration));
                 detailElem.addProperty("motohours", df.format(fMotohours));
 //                detailElem.addProperty("probeg", df.format(fProbeg));
@@ -345,6 +374,13 @@ public class ObjectsTracks {
 
         JsonObject answerObj = new JsonObject();
         answerObj.addProperty("status", "OK");
+
+        if (sid != null) {
+            answerObj.addProperty("sid", sid);
+        } else {
+            answerObj.addProperty("sid", "");
+        }
+
         answerObj.add("content", contentObj);
 
 

@@ -3,6 +3,7 @@ package ru.ath.alx.util;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.apache.log4j.Logger;
+import ru.ath.alx.dao.AuthService;
 
 import javax.net.ssl.HttpsURLConnection;
 import java.io.BufferedReader;
@@ -16,7 +17,9 @@ public class WebRequestUtil {
 
     private static final Logger log = Logger.getLogger(WebRequestUtil.class);
 
-        private static String token = "";
+//    private static String token;
+
+    private static AuthService authService = new AuthService();
 //    private String sid = "";
 
     // получить сид
@@ -79,6 +82,16 @@ public class WebRequestUtil {
 
 
     public static String getSID() {
+        // получим токен
+        String token = authService.getToken();
+        // произошла ошибка
+        if ((token == null) || (token.equals(""))) {
+            log.warn("ошибка при получении токена - пустой или равен null");
+            return null;
+        }
+
+
+
         String res = sendRequest(String.format(URL_GET_SID, token));
 
         // распарсим ответ
