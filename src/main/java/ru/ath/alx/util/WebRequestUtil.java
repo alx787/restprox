@@ -17,11 +17,7 @@ public class WebRequestUtil {
 
     private static final Logger log = Logger.getLogger(WebRequestUtil.class);
 
-//    private static String token;
-
     private static AuthService authService = new AuthService();
-//    private String sid = "";
-
     // получить сид
     private static final String URL_GET_SID = "https://wialon.kiravto.ru/wialon/ajax.html?svc=token/login&params={\"token\":\"%s\"}";
 
@@ -116,7 +112,6 @@ public class WebRequestUtil {
 
     // получение данных из виалона
     // sid - идентификатор сессии, если он заполнен то используется именно он, если не заполнен то получаем новый и используем его
-
     public static String getDataFromWln(String url, String sid) {
 
         String pSid = "";
@@ -129,7 +124,4 @@ public class WebRequestUtil {
 
         return sendRequest(String.format(url, pSid));
     }
-
-
-
 }
