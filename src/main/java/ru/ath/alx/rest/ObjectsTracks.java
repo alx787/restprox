@@ -33,6 +33,8 @@ public class ObjectsTracks {
     private static final String URL_GET_TABLE = "https://wialon.kiravto.ru/wialon/ajax.html?&svc=report/get_result_rows&params={\"tableIndex\":__table_index__,\"indexFrom\":__first_row__,\"indexTo\":__last_row__}&sid=%s";
     // получить расшифровку пробега
     private static final String URL_GET_TABLEROW = "https://wialon.kiravto.ru/wialon/ajax.html?svc=report/get_result_subrows&params={\"tableIndex\":__table_index__,\"rowIndex\":__row_index__}&sid=%s";
+    // получить последнее месторасположение
+    private static final String URL_GET_LASTPOS = "https://wialon.kiravto.ru/wialon/ajax.html?svc=core/search_item&params={\"id\":__object_id__,\"flags\":\"0x00000401\"}&sid=%s";
 
 
     private TransportService trService = new TransportService();
@@ -392,6 +394,46 @@ public class ObjectsTracks {
         // track/gettrack/76442/2020-04-19/2020-04-19
         // wl/refreshobjbywlnid/1187
     }
+
+
+    // получаем данные о месторасположении тс
+    // invnom - инвентарный номер
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/getlastpos/{invnom}")
+    public Response getObjectLastPosition(@PathParam("invnom") String invnom) {
+
+
+        ///////////////////////////////////////////////////
+        // тут всякие разные проверки переменных
+        if ((invnom == null) || (invnom.equals(""))) {
+            return Response.ok("{\"status\":\"error\", \"description\":\"object invnom is empty\"}").build();
+        }
+
+        Transport searchTr = trService.findTransportByInvnom(invnom);
+
+        if (searchTr == null) {
+            return Response.ok("{\"status\":\"error\", \"description\":\"объект с инв номером " + invnom + " не найден в базе данных\"}").build();
+        }
+
+        String url = URL_GET_LASTPOS.replace("__object_id__", searchTr.getWlnid());
+
+        String result = WebRequestUtil.getDataFromWln(url, null);
+        if (result == null) {
+            return Response.ok("{\"status\":\"error\", \"description\":\"сервер вернул ошибку при попытке получения таблиц отчета\"}").build();
+        }
+
+        log.warn("last position");
+        log.warn(result);
+
+        // track/getlastpos/30700
+        // {"item":{"nm":"0072КХ 43 RUS","cls":2,"id":2693,"mu":0,"pos":{"t":1587731070,"f":1073741831,"lc":0,"y":57.567595,"x":49.9365633333,"c":58,"z":97.3,"s":3,"sc":14},"lmsg":{"t":1587731070,"f":1073741831,"tp":"ud","pos":{"y":57.567595,"x":49.9365633333,"c":58,"z":97.3,"s":3,"sc":14},"i":128,"o":0,"lc":0,"rt":0,"p":{"msg_type":"A","proto":"FLEX1.0","msg_number":26633,"event_code":4656,"status":0,"modules_st":169,"modules_st2":0,"gsm":16,"last_valid_time":1587731069,"nav_rcvr_state":1,"valid_nav":1,"sats":14,"mileage":948.234619141,"pwr_ext":8.655,"pwr_int":3.454,"engine_hours":66.1447222222}},"uacl":880333093887},"flags":1025}
+        // https://sdk.wialon.com/wiki/ru/sidebar/remoteapi/apiref/format/unit#poslednee_soobschenie_i_mestopolozhenie
+
+        return Response.ok("").build();
+
+    }
+
 
 
     // получает строковое представление количество часов вида "0.00" из строки вида "00:00:00"
