@@ -208,6 +208,7 @@ public class ObjectsTracks {
         JsonArray resArr = new JsonParser().parse(result).getAsJsonArray();
 
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd.MM.yyyy-HH:mm:ss");
+        simpleDateFormat.setTimeZone(java.util.TimeZone.getTimeZone("UTC"));
 
 
         float fTotalDuration = 0;
@@ -423,17 +424,79 @@ public class ObjectsTracks {
             return Response.ok("{\"status\":\"error\", \"description\":\"сервер вернул ошибку при попытке получения таблиц отчета\"}").build();
         }
 
-        log.warn("last position");
-        log.warn(result);
+//        log.warn("last position");
+//        log.warn(result);
 
         // track/getlastpos/30700
         // {"item":{"nm":"0072КХ 43 RUS","cls":2,"id":2693,"mu":0,"pos":{"t":1587731070,"f":1073741831,"lc":0,"y":57.567595,"x":49.9365633333,"c":58,"z":97.3,"s":3,"sc":14},"lmsg":{"t":1587731070,"f":1073741831,"tp":"ud","pos":{"y":57.567595,"x":49.9365633333,"c":58,"z":97.3,"s":3,"sc":14},"i":128,"o":0,"lc":0,"rt":0,"p":{"msg_type":"A","proto":"FLEX1.0","msg_number":26633,"event_code":4656,"status":0,"modules_st":169,"modules_st2":0,"gsm":16,"last_valid_time":1587731069,"nav_rcvr_state":1,"valid_nav":1,"sats":14,"mileage":948.234619141,"pwr_ext":8.655,"pwr_int":3.454,"engine_hours":66.1447222222}},"uacl":880333093887},"flags":1025}
         // https://sdk.wialon.com/wiki/ru/sidebar/remoteapi/apiref/format/unit#poslednee_soobschenie_i_mestopolozhenie
 
-        return Response.ok("").build();
+        // прочитаем ответ, если не ошибка то продолжим далее
+        JsonObject resJsonObj = new JsonParser().parse(result).getAsJsonObject();
+        // проверим что вернул серверу
+        if (resJsonObj.has("error")) {
+            log.warn("ошибка при получении данных таблиц пробегов, код ошибки " + resJsonObj.get("error").getAsString());
+            return Response.ok("{\"status\":\"error\", \"description\":\"ошибка при получении данных таблиц пробегов, код ошибки " + resJsonObj.get("error").getAsString() + "\"}").build();
+        }
 
+        // читаем данные таблицы ответа
+        JsonObject itemJsonObj = resJsonObj.getAsJsonObject("item");
+        JsonObject itemPosJsonObj = itemJsonObj.getAsJsonObject("pos");
+
+//        String objName = itemJsonObj.get("nm").getAsString();
+
+        // готовим ответ
+        JsonObject answJson = new JsonObject();
+        JsonObject contentJson = new JsonObject();
+
+        answJson.addProperty("status", "ok");
+
+        contentJson.addProperty("name", itemJsonObj.get("nm").getAsString());
+
+
+        String sTime = "-";
+        try {
+            // получаем значение
+            long unixTime = Long.valueOf(itemPosJsonObj.get("t").getAsString());
+
+            // часовой пояс
+            int timeZone = 3;
+            // преобразуем в юникс тайм формат
+            unixTime = unixTime * 1000 + 3600 * timeZone;
+            // получаем дату
+            Date dTime = new Date(unixTime);
+            // шаблон форматирования
+            SimpleDateFormat format = new SimpleDateFormat("yyyy.MM.dd - HH:mm:ss");
+            format.setTimeZone(java.util.TimeZone.getTimeZone("UTC"));
+            // строковое представление
+            sTime = format.format(dTime);
+         } catch (Exception e) {
+            log.warn("ошибка при преобразовании времени юникс формата из string в long");
+        }
+
+
+        contentJson.addProperty("time", sTime);
+        contentJson.addProperty("x", itemPosJsonObj.get("x").getAsString());
+        contentJson.addProperty("y", itemPosJsonObj.get("y").getAsString());
+        contentJson.addProperty("z", itemPosJsonObj.get("z").getAsString());
+        contentJson.addProperty("sat", itemPosJsonObj.get("sc").getAsString());
+        contentJson.addProperty("speed", itemPosJsonObj.get("s").getAsString());
+        contentJson.addProperty("course", itemPosJsonObj.get("c").getAsString());
+
+//        "t":<uint>,		/* время UTC */
+//        "y":<double>,		/* широта */
+//        "x":<double>,		/* долгота */
+//        "z":<double>,		/* высота над уровнем моря */
+//        "s":<int>,		/* скорость */
+//        "c":<int>,		/* курс */
+//        "sc":<int>		/* спутники */
+
+        answJson.add("content", contentJson);
+
+        Gson gson = new Gson();
+
+        return Response.ok(gson.toJson(answJson)).build();
     }
-
 
 
     // получает строковое представление количество часов вида "0.00" из строки вида "00:00:00"
