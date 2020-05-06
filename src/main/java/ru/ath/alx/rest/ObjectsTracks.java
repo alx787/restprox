@@ -102,7 +102,7 @@ public class ObjectsTracks {
 
         // часовой пояс
         int timeZone = 3;
-
+        // преобразуем даты в юникс формат и корректируем с учетом часового пояса в UTC
         long lBeginTime = pDateBegin.getTime() / 1000 - 3600 * timeZone;
         long lEndTime = pDateEnd.getTime() / 1000 - 3600 * timeZone + 86399;
 
@@ -207,18 +207,12 @@ public class ObjectsTracks {
         // прочитаем ответ, если не ошибка то продолжим далее
         JsonArray resArr = new JsonParser().parse(result).getAsJsonArray();
 
+
+        //////////////////////////////////////////////////
+        // настроим форматы
+        //////////////////////////////////////////////////
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd.MM.yyyy-HH:mm:ss");
         simpleDateFormat.setTimeZone(java.util.TimeZone.getTimeZone("UTC"));
-
-
-        float fTotalDuration = 0;
-        float fTotalMotohours = 0;
-        float fTotalProbeg = 0;
-
-        float fDuration = 0;
-        float fMotohours = 0;
-        float fProbeg = 0;
-
 
         // для преобразования float
         Locale locale = new Locale("en", "US");
@@ -227,6 +221,21 @@ public class ObjectsTracks {
         symbols.setDecimalSeparator('.');
 
         DecimalFormat df = new DecimalFormat("0.00", symbols);
+        //////////////////////////////////////////////////
+
+
+        // итоговые значения
+        float fTotalDuration = 0;
+        float fTotalMotohours = 0;
+        float fTotalProbeg = 0;
+        float fTotalFuelRate = 0;
+
+        float fDuration = 0;
+        float fMotohours = 0;
+        float fProbeg = 0;
+        float fFuelRate = 0;
+
+
 
 
 
@@ -252,6 +261,8 @@ public class ObjectsTracks {
                 return Response.ok("{\"status\":\"error\", \"description\":\"сервер вернул ошибку при попытке получения строк таблицы отчета\"}").build();
             }
 
+//            log.warn("ответ сервера");
+//            log.warn(result);
 
             // прочитаем ответ, если не ошибка то продолжим далее
             JsonArray resRowArr = new JsonParser().parse(result).getAsJsonArray();
@@ -261,13 +272,33 @@ public class ObjectsTracks {
 
                 JsonArray oneResRowArr = oneResRow.get("c").getAsJsonArray();
 
-                // получаем значения
-                // место начала
-                JsonObject placeJson = oneResRowArr.get(2).getAsJsonObject();
-                String sPlaceBegin = placeJson.get("t").getAsString();
+                // дата сообщения в формате 2020-05-06 03:40:57
+                String sTrackTime = oneResRowArr.get(0).getAsString();
 
+                // получаем значения координат и времени начала трека
+                JsonObject placeJson = oneResRowArr.get(1).getAsJsonObject();
+                String sTrackBegTime = placeJson.get("v").getAsString();
+                String sTrackBegX = placeJson.get("x").getAsString();
+                String sTrackBegY = placeJson.get("y").getAsString();
+
+                // значения координат и времени окончания трека
+                placeJson = oneResRowArr.get(3).getAsJsonObject();
+                String sTrackEndTime = placeJson.get("v").getAsString();
+                String sTrackEndX = placeJson.get("x").getAsString();
+                String sTrackEndY = placeJson.get("y").getAsString();
+
+
+                // значения названия и координат замечательного места начала
+                placeJson = oneResRowArr.get(2).getAsJsonObject();
+                String sPlaceBeg = placeJson.get("t").getAsString();
+                String sPlaceBegX = placeJson.get("x").getAsString();
+                String sPlaceBegY = placeJson.get("y").getAsString();
+
+                // значения названия и координат замечательного места окончания
                 placeJson = oneResRowArr.get(4).getAsJsonObject();
                 String sPlaceEnd = placeJson.get("t").getAsString();
+                String sPlaceEndX = placeJson.get("x").getAsString();
+                String sPlaceEndY = placeJson.get("y").getAsString();
 
                 // длительность
                 String dDuration = oneResRowArr.get(5).getAsString();
@@ -276,15 +307,27 @@ public class ObjectsTracks {
                 // пробеги
                 String dPprobeg = oneResRowArr.get(7).getAsString();
 
+                // максимальная скорость, координаты фиксации
+                placeJson = oneResRowArr.get(8).getAsJsonObject();
+                String sMaxSpeed = placeJson.get("t").getAsString();
+                String sMaxSpeedX = placeJson.get("x").getAsString();
+                String sMaxSpeedY = placeJson.get("y").getAsString();
+
+                // потрачено по нормам
+                String sFuelRate = oneResRowArr.get(9).getAsString();
+
+                // средний расход
+                String sFuelAvgRate = oneResRowArr.get(10).getAsString();
+
 
                 // дата начала периода в юниксе
                 String dBeg = oneResRow.get("t1").getAsString();
                 // дата окончания периода в юниксе
                 String dEnd = oneResRow.get("t2").getAsString();
 
-                // преобразуем дату в тип Date
-                Date dateBegin = new Date(Long.valueOf(dBeg) * 1000 + timeZone * 3600);
-                Date dateEnd = new Date(Long.valueOf(dEnd) * 1000 + timeZone * 3600);
+//                // преобразуем дату в тип Date
+//                Date dateBegin = new Date(Long.valueOf(dBeg) * 1000 + timeZone * 3600);
+//                Date dateEnd = new Date(Long.valueOf(dEnd) * 1000 + timeZone * 3600);
 
 //                String outPutStr = "время нач " + simpleDateFormat.format(dateBegin) + " время кон " + simpleDateFormat.format(dateEnd);
 //                outPutStr = outPutStr + " длит " + dDuration + " моточ " + dMotohours + " пробег " + dPprobeg;
@@ -296,29 +339,67 @@ public class ObjectsTracks {
                 fDuration = convertTime(dDuration);
                 fMotohours = convertTime(dMotohours);
                 fProbeg = 0;
+                fFuelRate = 0;
+
                 try {
                     fProbeg = Float.valueOf(dPprobeg.replace(" km", ""));
                 } catch (Exception e) {
-
+                    log.warn("ошибка преобразования пробега в тип float: " + dPprobeg);
                 }
+
+                try {
+                    fFuelRate = Float.valueOf(sFuelRate.replace(" lt", ""));
+                } catch (Exception e) {
+                    log.warn("ошибка преобразования расхода топлива в тип float: " + sFuelRate);
+                }
+
 
                 // суммируем значения
                 fTotalDuration = fTotalDuration + fDuration;
                 fTotalMotohours = fTotalMotohours + fMotohours;
                 fTotalProbeg = fTotalProbeg + fProbeg;
+                fTotalFuelRate = fTotalFuelRate + fFuelRate;
 
                 //////////////////////////////////////////////////////
                 // элемент детализации
                 //////////////////////////////////////////////////////
                 JsonObject detailElem = new JsonObject();
-                detailElem.addProperty("datebeg", simpleDateFormat.format(dateBegin));
-                detailElem.addProperty("dateend", simpleDateFormat.format(dateEnd));
-                detailElem.addProperty("placebeg", sPlaceBegin);
+
+                detailElem.addProperty("tracktime", sTrackTime);
+
+                detailElem.addProperty("trackbegtime", simpleDateFormat.format(convertUnixToDate(sTrackBegTime, timeZone)));
+                detailElem.addProperty("trackbegx", sTrackBegX);
+                detailElem.addProperty("trackbegy", sTrackBegY);
+
+                detailElem.addProperty("trackendtime", simpleDateFormat.format(convertUnixToDate(sTrackEndTime, timeZone)));
+                detailElem.addProperty("trackendx", sTrackEndX);
+                detailElem.addProperty("trackendy", sTrackEndY);
+
+
+                detailElem.addProperty("datebeg", simpleDateFormat.format(convertUnixToDate(dBeg, timeZone)));
+                detailElem.addProperty("dateend", simpleDateFormat.format(convertUnixToDate(dEnd, timeZone)));
+
+                detailElem.addProperty("placebeg", sPlaceBeg);
+                detailElem.addProperty("placebegx", sPlaceBegX);
+                detailElem.addProperty("placebegy", sPlaceBegY);
+
                 detailElem.addProperty("placeend", sPlaceEnd);
+                detailElem.addProperty("placeendx", sPlaceEndX);
+                detailElem.addProperty("placeendy", sPlaceEndY);
+
+
                 detailElem.addProperty("duration", df.format(fDuration));
                 detailElem.addProperty("motohours", df.format(fMotohours));
 //                detailElem.addProperty("probeg", df.format(fProbeg));
                 detailElem.addProperty("probeg", df.format(fProbeg));
+
+                detailElem.addProperty("maxspeed", sMaxSpeed);
+                detailElem.addProperty("maxspeedx", sMaxSpeedX);
+                detailElem.addProperty("maxspeedy", sMaxSpeedY);
+
+                detailElem.addProperty("fuelrate", sFuelRate);
+                detailElem.addProperty("fuelavgrate", sFuelAvgRate);
+
 
                 detailArr.add(detailElem);
 
@@ -373,6 +454,8 @@ public class ObjectsTracks {
         contentObj.addProperty("duration", df.format(fTotalDuration));
         contentObj.addProperty("motohours", df.format(fTotalMotohours));
         contentObj.addProperty("probeg", df.format(fTotalProbeg));
+        contentObj.addProperty("fuelrate", df.format(fTotalFuelRate));
+
         contentObj.add("detail", detailArr);
 
         JsonObject answerObj = new JsonObject();
@@ -456,17 +539,24 @@ public class ObjectsTracks {
 
         String sTime = "-";
         try {
-            // получаем значение
+            // получаем значение времени в UTC
             long unixTime = Long.valueOf(itemPosJsonObj.get("t").getAsString());
+//            log.warn("time from request " + String.valueOf(unixTime));
 
             // часовой пояс
             int timeZone = 3;
-            // преобразуем в юникс тайм формат
-            unixTime = unixTime * 1000 + 3600 * timeZone;
+            // преобразуем в юникс тайм формат, сразу же корректируем время с учетом временной зоны
+            // не умножаем на 1000 время и корректировку
+            unixTime = unixTime * 1000 + 3600 * timeZone * 1000;
+//            log.warn("time transform " + String.valueOf(unixTime));
+
             // получаем дату
             Date dTime = new Date(unixTime);
+//            log.warn("date to string " + dTime.toString());
+
             // шаблон форматирования
             SimpleDateFormat format = new SimpleDateFormat("yyyy.MM.dd - HH:mm:ss");
+            // настроим шаблон чтобы он не донастроил формат с учетом временных зон
             format.setTimeZone(java.util.TimeZone.getTimeZone("UTC"));
             // строковое представление
             sTime = format.format(dTime);
@@ -474,8 +564,9 @@ public class ObjectsTracks {
             log.warn("ошибка при преобразовании времени юникс формата из string в long");
         }
 
-
+        // тут время местное !!!
         contentJson.addProperty("time", sTime);
+
         contentJson.addProperty("x", itemPosJsonObj.get("x").getAsString());
         contentJson.addProperty("y", itemPosJsonObj.get("y").getAsString());
         contentJson.addProperty("z", itemPosJsonObj.get("z").getAsString());
@@ -498,6 +589,13 @@ public class ObjectsTracks {
         return Response.ok(gson.toJson(answJson)).build();
     }
 
+
+    // преобразуем дату из Unix timestamp в тип Date
+    // sDate - строка даты в юникс формате
+    // timeZone - временная зона
+    private Date convertUnixToDate(String sDate, int timeZone) {
+        return new Date(Long.valueOf(sDate) * 1000 + timeZone * 3600 * 1000);
+    }
 
     // получает строковое представление количество часов вида "0.00" из строки вида "00:00:00"
     private float convertTime(String sDlit) {
