@@ -7,6 +7,7 @@ import com.google.gson.JsonParser;
 import org.apache.log4j.Logger;
 import ru.ath.alx.dao.TransportService;
 import ru.ath.alx.model.Transport;
+import ru.ath.alx.util.ConverterUtil;
 import ru.ath.alx.util.WebRequestUtil;
 
 import javax.ws.rs.*;
@@ -367,17 +368,17 @@ public class ObjectsTracks {
 
                 detailElem.addProperty("tracktime", sTrackTime);
 
-                detailElem.addProperty("trackbegtime", simpleDateFormat.format(convertUnixToDate(sTrackBegTime, timeZone)));
+                detailElem.addProperty("trackbegtime", simpleDateFormat.format(ConverterUtil.convertUnixToDate(sTrackBegTime, timeZone)));
                 detailElem.addProperty("trackbegx", sTrackBegX);
                 detailElem.addProperty("trackbegy", sTrackBegY);
 
-                detailElem.addProperty("trackendtime", simpleDateFormat.format(convertUnixToDate(sTrackEndTime, timeZone)));
+                detailElem.addProperty("trackendtime", simpleDateFormat.format(ConverterUtil.convertUnixToDate(sTrackEndTime, timeZone)));
                 detailElem.addProperty("trackendx", sTrackEndX);
                 detailElem.addProperty("trackendy", sTrackEndY);
 
 
-                detailElem.addProperty("datebeg", simpleDateFormat.format(convertUnixToDate(dBeg, timeZone)));
-                detailElem.addProperty("dateend", simpleDateFormat.format(convertUnixToDate(dEnd, timeZone)));
+                detailElem.addProperty("datebeg", simpleDateFormat.format(ConverterUtil.convertUnixToDate(dBeg, timeZone)));
+                detailElem.addProperty("dateend", simpleDateFormat.format(ConverterUtil.convertUnixToDate(dEnd, timeZone)));
 
                 detailElem.addProperty("placebeg", sPlaceBeg);
                 detailElem.addProperty("placebegx", sPlaceBegX);
@@ -537,32 +538,7 @@ public class ObjectsTracks {
         contentJson.addProperty("name", itemJsonObj.get("nm").getAsString());
 
 
-        String sTime = "-";
-        try {
-            // получаем значение времени в UTC
-            long unixTime = Long.valueOf(itemPosJsonObj.get("t").getAsString());
-//            log.warn("time from request " + String.valueOf(unixTime));
-
-            // часовой пояс
-            int timeZone = 3;
-            // преобразуем в юникс тайм формат, сразу же корректируем время с учетом временной зоны
-            // не умножаем на 1000 время и корректировку
-            unixTime = unixTime * 1000 + 3600 * timeZone * 1000;
-//            log.warn("time transform " + String.valueOf(unixTime));
-
-            // получаем дату
-            Date dTime = new Date(unixTime);
-//            log.warn("date to string " + dTime.toString());
-
-            // шаблон форматирования
-            SimpleDateFormat format = new SimpleDateFormat("yyyy.MM.dd - HH:mm:ss");
-            // настроим шаблон чтобы он не донастроил формат с учетом временных зон
-            format.setTimeZone(java.util.TimeZone.getTimeZone("UTC"));
-            // строковое представление
-            sTime = format.format(dTime);
-         } catch (Exception e) {
-            log.warn("ошибка при преобразовании времени юникс формата из string в long");
-        }
+        String sTime = ConverterUtil.convertUnixToHuman(itemPosJsonObj.get("t").getAsString(), 3);
 
         // тут время местное !!!
         contentJson.addProperty("time", sTime);
@@ -587,14 +563,6 @@ public class ObjectsTracks {
         Gson gson = new Gson();
 
         return Response.ok(gson.toJson(answJson)).build();
-    }
-
-
-    // преобразуем дату из Unix timestamp в тип Date
-    // sDate - строка даты в юникс формате
-    // timeZone - временная зона
-    private Date convertUnixToDate(String sDate, int timeZone) {
-        return new Date(Long.valueOf(sDate) * 1000 + timeZone * 3600 * 1000);
     }
 
     // получает строковое представление количество часов вида "0.00" из строки вида "00:00:00"

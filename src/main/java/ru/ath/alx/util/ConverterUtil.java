@@ -7,6 +7,8 @@ import com.google.gson.JsonParser;
 import org.apache.log4j.Logger;
 import ru.ath.alx.model.Transport;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Map;
 import java.util.Set;
 
@@ -179,5 +181,47 @@ public class ConverterUtil {
         trJson.addProperty("atres", tr.getAtres());
 
         return trJson;
+    }
+
+    // преобразуем дату из Unix timestamp в тип Date
+    // sDate - строка даты в юникс формате
+    // timeZone - временная зона
+    // вобщем получаем дату типа Date из даты формата виалона
+    public static Date convertUnixToDate(String sDate, int timeZone) {
+        return new Date(Long.valueOf(sDate) * 1000 + timeZone * 3600 * 1000);
+    }
+
+    // преобразование времени виалона в дату формата yyyy.MM.dd - HH:mm:ss
+    // sDate - время из виалона в юникс формате
+    // timeZone - временная зона
+    public static String convertUnixToHuman(String sDate, int timeZone) {
+        String sTime = "-";
+        try {
+            // получаем значение времени в UTC
+            long unixTime = Long.valueOf(sDate);
+//            log.warn("time from request " + String.valueOf(unixTime));
+
+            // часовой пояс
+//            int timeZone = 3;
+            // преобразуем в юникс тайм формат, сразу же корректируем время с учетом временной зоны
+            // не умножаем на 1000 время и корректировку
+            unixTime = unixTime * 1000 + 3600 * timeZone * 1000;
+//            log.warn("time transform " + String.valueOf(unixTime));
+
+            // получаем дату
+            Date dTime = new Date(unixTime);
+//            log.warn("date to string " + dTime.toString());
+
+            // шаблон форматирования
+            SimpleDateFormat format = new SimpleDateFormat("yyyy.MM.dd - HH:mm:ss");
+            // настроим шаблон чтобы он не донастроил формат с учетом временных зон
+            format.setTimeZone(java.util.TimeZone.getTimeZone("UTC"));
+            // строковое представление
+            sTime = format.format(dTime);
+        } catch (Exception e) {
+            log.warn("ошибка при преобразовании времени юникс формата из string в long");
+        }
+
+        return sTime;
     }
 }
