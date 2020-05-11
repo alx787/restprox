@@ -11,10 +11,7 @@ import ru.ath.alx.model.Transport;
 import ru.ath.alx.util.ConverterUtil;
 import ru.ath.alx.util.WebRequestUtil;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.text.ParseException;
@@ -33,7 +30,8 @@ public class Info {
     private static final String URL_GET_MARS = "https://wialon.kiravto.ru/wialon/ajax.html?svc=messages/load_interval&params={\"itemId\":__object_id__,\"timeFrom\":__date_beg__,\"timeTo\":__date_end__,\"flags\":1,\"flagsMask\":65281,\"loadCount\":50000}&sid=%s";
     private static final String URL_GET_CLEAR_MARS = "https://wialon.kiravto.ru/wialon/ajax.html?svc=messages/unload&params={}&sid=%s";
 
-    @GET
+//    @GET
+    @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/test")
     public Response info() {
@@ -44,6 +42,14 @@ public class Info {
 
     }
 
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/noneauth")
+    public Response noneauth() {
+
+        return Response.ok("{\"status\":\"error\", \"description\":\"none authorized\"}").build();
+
+    }
 
     // получение точек для построения трека - маршрута движения тс
     // пока лежит тут в тестовой части
