@@ -42,14 +42,22 @@ public class Info {
 
     }
 
-    @GET
+    @POST
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/noneauth")
-    public Response noneauth() {
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Path("/auth")
+    public Response auth() {
 
         return Response.ok("{\"status\":\"error\", \"description\":\"none authorized\"}").build();
 
     }
+
+
+
+
+
+
+
 
     // получение точек для построения трека - маршрута движения тс
     // пока лежит тут в тестовой части

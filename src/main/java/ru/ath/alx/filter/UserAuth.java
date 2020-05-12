@@ -1,11 +1,14 @@
 package ru.ath.alx.filter;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import org.apache.log4j.Logger;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -22,29 +25,69 @@ public class UserAuth implements Filter {
 
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
-        // если сессия не создана то нужно перенаправить на сервис где будет создана сессия
-        // он должен вернуть ид сессии, и его нужно будет использовать, потому как к сессии
-        // прицепим логин и пароль
+        // 1 - сначала передаем логин и пароль, получаем токен
+        // post данные - login password
 
-        // если получится
+        // 2 - авторизуемся везде с помощью токена
+        // post данные - token
+
+        // 3 - в дальнейшем используется токен
+        // post данные - token
+
+        // проверять валидность токена или получать свежий токен можно при начале работы приложения
 
 
         log.warn(" ========== filter =========");
 
         HttpServletRequest httpServletRequest = (HttpServletRequest) servletRequest;
-        HttpSession session = httpServletRequest.getSession(true);
-
-        log.warn(httpServletRequest.getRequestURI());
 
 
-        if ((session != null) && (!session.isNew())) {
+        StringBuffer stringBuffer = new StringBuffer();
+        String postLine = null;
 
-            log.warn(" ======== exist session ");
+        try {
+            BufferedReader reader = servletRequest.getReader();
+            while ((postLine = reader.readLine()) != null)
+                stringBuffer.append(postLine);
+        } catch (Exception e) { /*report an error*/ }
 
-        } else {
-            log.warn(" ======== new session ");
-            ((HttpServletResponse)servletResponse).sendRedirect("info/noneauth");
+        JsonParser parser = new JsonParser();
+        JsonObject jsonPostData = parser.parse(stringBuffer.toString()).getAsJsonObject();
+
+        String login = null;
+        String pass = null;
+        String token = null;
+
+        login = jsonPostData.get("login").getAsString();
+        pass = jsonPostData.get("pass").getAsString();
+        token = httpServletRequest.getParameter("token");
+
+        if (token != null) {
+
         }
+
+        if (login != null && pass != null) {
+            log.warn("login: " + login);
+            log.warn("pass:  " + pass);
+            ((HttpServletResponse)servletResponse).sendRedirect("info/auth");
+        }
+
+
+//        HttpSession session = httpServletRequest.getSession(true);
+//
+//        log.warn(httpServletRequest.getRequestURI());
+//
+//
+//
+//
+//        if ((session != null) && (!session.isNew())) {
+//
+//            log.warn(" ======== exist session ");
+//
+//        } else {
+//            log.warn(" ======== new session ");
+//            //((HttpServletResponse)servletResponse).sendRedirect("info/noneauth");
+//        }
 
 
 //            String sessUser = (String)session.getAttribute("user");

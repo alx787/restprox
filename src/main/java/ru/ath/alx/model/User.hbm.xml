@@ -4,7 +4,7 @@
         "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
 <hibernate-mapping>
 
-    <class name="ru.ath.alx.model.Users" table="users" schema="restproxdb">
+    <class name="ru.ath.alx.model.User" table="users" schema="restproxdb">
         <id name="id">
             <column name="id" sql-type="int(10) unsigned"/>
         </id>
@@ -16,6 +16,9 @@
         </property>
         <property name="passhash">
             <column name="passhash" sql-type="varchar(64)" length="64"/>
+        </property>
+        <property name="passtoken">
+            <column name="passtoken" sql-type="varchar(24)" length="24"/>
         </property>
     </class>
 </hibernate-mapping>

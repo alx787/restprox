@@ -5,12 +5,13 @@ import java.util.Objects;
 
 @Entity
 @Table(name = "users", schema = "restproxdb")
-public class Users {
+public class User {
 
     private int id;
     private String name;
     private String password;
     private String passhash;
+    private String passtoken;
 
     @Id
     @Column(name = "id", nullable = false)
@@ -52,20 +53,31 @@ public class Users {
         this.passhash = passhash;
     }
 
+    @Basic
+    @Column(name = "passtoken", nullable = false, length = 24)
+    public String getPasstoken() {
+        return passtoken;
+    }
+
+    public void setPasstoken(String passtoken) {
+        this.passtoken = passtoken;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Users that = (Users) o;
+        User that = (User) o;
         return id == that.id &&
                 Objects.equals(name, that.name) &&
                 Objects.equals(password, that.password) &&
-                Objects.equals(passhash, that.passhash);
+                Objects.equals(passhash, that.passhash) &&
+                Objects.equals(passtoken, that.passtoken);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, password, passhash);
+        return Objects.hash(id, name, password, passhash, passtoken);
     }
 
 }
