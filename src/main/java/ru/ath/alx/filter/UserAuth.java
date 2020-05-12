@@ -7,6 +7,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 public class UserAuth implements Filter {
 
@@ -19,22 +22,61 @@ public class UserAuth implements Filter {
 
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
+        // если сессия не создана то нужно перенаправить на сервис где будет создана сессия
+        // он должен вернуть ид сессии, и его нужно будет использовать, потому как к сессии
+        // прицепим логин и пароль
+
+        // если получится
+
 
         log.warn(" ========== filter =========");
 
         HttpServletRequest httpServletRequest = (HttpServletRequest) servletRequest;
         HttpSession session = httpServletRequest.getSession(true);
 
+        log.warn(httpServletRequest.getRequestURI());
+
 
         if ((session != null) && (!session.isNew())) {
-            String sessUser = (String)session.getAttribute("user");
-            String sessToken = (String)session.getAttribute("token");
 
-            log.warn(" ======== ");
-            log.warn(" sess user from filter:  " + sessUser);
-            log.warn(" sess token from filter: " + sessToken);
+            log.warn(" ======== exist session ");
+
+        } else {
+            log.warn(" ======== new session ");
+            ((HttpServletResponse)servletResponse).sendRedirect("info/noneauth");
+        }
+
+
+//            String sessUser = (String)session.getAttribute("user");
+//            String sessToken = (String)session.getAttribute("token");
+//
+//            log.warn(" ======== ");
+//            log.warn(" session id: " + session.getId());
+//            log.warn(" sess user from filter:  " + sessUser);
+//            log.warn(" sess token from filter: " + sessToken);
 
             //((HttpServletResponse) servletResponse).sendRedirect("restprox/info/noneauth");
+    //        MessageDigest digest = null;
+    //        try {
+    //            digest = MessageDigest.getInstance("SHA-256");
+    //
+    //            byte[] encodedhash = digest.digest("userName".getBytes(StandardCharsets.UTF_8));
+    //
+    //            StringBuffer hexString = new StringBuffer();
+    //
+    //            for (int i = 0; i < encodedhash.length; i++) {
+    //                String hex = Integer.toHexString(0xff & encodedhash[i]);
+    //                if(hex.length() == 1) hexString.append('0');
+    //                hexString.append(hex);
+    //            }
+    //
+    //            log.warn("hash");
+    //            log.warn(hexString.toString());
+    //
+    //
+    //        } catch (NoSuchAlgorithmException e) {
+    //            e.printStackTrace();
+    //        }
 
 
 //            if (!checkAuth(sessUser, sessToken)) {
@@ -60,13 +102,7 @@ public class UserAuth implements Filter {
 //
 //            }
 //
-        } else {
-            log.warn(" ======== ");
-            log.warn(" session not found ");
 
-            //((HttpServletResponse) servletResponse).sendRedirect("restprox/info/noneauth");
-            //return;
-        }
 
 
         filterChain.doFilter(servletRequest, servletResponse);
