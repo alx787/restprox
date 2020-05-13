@@ -39,6 +39,7 @@ public class Info {
     private static final String URL_GET_MARS = "https://wialon.kiravto.ru/wialon/ajax.html?svc=messages/load_interval&params={\"itemId\":__object_id__,\"timeFrom\":__date_beg__,\"timeTo\":__date_end__,\"flags\":1,\"flagsMask\":65281,\"loadCount\":50000}&sid=%s";
     private static final String URL_GET_CLEAR_MARS = "https://wialon.kiravto.ru/wialon/ajax.html?svc=messages/unload&params={}&sid=%s";
 
+
 //    @GET
     @POST
     @Produces(MediaType.APPLICATION_JSON)
@@ -58,6 +59,8 @@ public class Info {
     @Consumes(MediaType.APPLICATION_JSON)
     @Path("/errorauth")
     public Response errorAuth() {
+
+        log.warn("from errorauth");
 
         return Response.ok("{\"status\":\"error\", \"description\":\"error auth\"}").build();
 
@@ -109,8 +112,8 @@ public class Info {
         login = jsonPostData.get("login").getAsString();
         passhash = jsonPostData.get("pass").getAsString();
 
-        log.warn("login: " + login);
-        log.warn("passhash: " + passhash);
+//        log.warn("login: " + login);
+//        log.warn("passhash: " + passhash);
 
         if (login == null || passhash == null) {
             log.warn("ошибка при получении логина или пароля при реавторизации");

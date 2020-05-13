@@ -36,7 +36,7 @@ public class AuthUtil {
         }
 
         // при проверке ставим новый токен
-        user.setPasshash(generateToken());
+        user.setPasstoken(generateToken());
         userService.update(user);
 
         return true;
@@ -44,13 +44,21 @@ public class AuthUtil {
 
 
     private static String generateToken() {
+
         SecureRandom random = new SecureRandom();
 
-        long longTokenFirst = Math.abs( random.nextLong() );
-        long longTokenMiddle = Math.abs( random.nextLong() );
-        long longTokenLast = Math.abs( random.nextLong() );
+        String randomString = "";
+        long longToken = 0;
 
-        String randomString = Long.toString(longTokenFirst, 24) + Long.toString(longTokenMiddle, 24) + Long.toString(longTokenLast, 16);
+        while (randomString.length() < 64) {
+            longToken = Math.abs( random.nextLong() );
+            randomString = randomString + Long.toString(longToken, 16);
+        }
+
+        if (randomString.length() > 64) {
+            randomString = randomString.substring(0, 63);
+        }
+
         return randomString;
     }
 }

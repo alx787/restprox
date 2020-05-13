@@ -12,7 +12,7 @@ public class UserDaoImpl implements UserDao {
     public void update(User user) {
         Session session = HibernateUtil.getSessionFactory().openSession();
         session.beginTransaction();
-        session.save(user);
+        session.update(user);
         session.getTransaction().commit();
     }
 

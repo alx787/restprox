@@ -49,7 +49,7 @@ public class User {
         return passhash;
     }
 
-    public void setPasshash(String token) {
+    public void setPasshash(String passhash) {
         this.passhash = passhash;
     }
 

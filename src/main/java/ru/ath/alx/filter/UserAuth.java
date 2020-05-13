@@ -43,8 +43,12 @@ public class UserAuth implements Filter {
         RequestWrapper requestWrapper = new RequestWrapper(httpServletRequest);
         String postData = requestWrapper.getBody();
 
-        log.warn("post data: " + postData);
-        log.warn("uri: " + requestWrapper.getRequestURI());
+//        log.warn("post data: " + postData);
+//        log.warn("uri: " + requestWrapper.getRequestURI());
+//
+//        log.warn("server name: " + httpServletRequest.getServerName());
+//        log.warn("context path: " + httpServletRequest.getContextPath());
+
 
 //        StringBuffer stringBuffer = new StringBuffer();
 //        String postLine = null;
@@ -55,8 +59,12 @@ public class UserAuth implements Filter {
 //                stringBuffer.append(postLine);
 //        } catch (Exception e) { /*report an error*/ }
 
+        if (postData == null || postData.isEmpty()) {
+            httpServletResponse.sendRedirect(httpServletRequest.getContextPath() + "/info/errorauth");
+            return;
+        }
+
         JsonParser parser = new JsonParser();
-//        JsonObject jsonPostData = parser.parse(stringBuffer.toString()).getAsJsonObject();
         JsonObject jsonPostData = parser.parse(postData).getAsJsonObject();
 
 
@@ -78,11 +86,17 @@ public class UserAuth implements Filter {
             //
             if (!AuthUtil.checkToken(userid, token)) {
                 // если токен неправильный то отправить на сервис ошибочной авторизации
-                httpServletResponse.sendRedirect("info/errorauth");
+                RequestDispatcher rd = servletRequest.getRequestDispatcher("/info/errorauth");
+                rd.forward(servletRequest, servletResponse);
+//                httpServletResponse.sendRedirect(httpServletRequest.getContextPath() + "/info/errorauth");
+                return;
             }
 
         } else {
-            httpServletResponse.sendRedirect("info/errorauth");
+            RequestDispatcher rd = servletRequest.getRequestDispatcher("/info/errorauth");
+            rd.forward(servletRequest, servletResponse);
+//            httpServletResponse.sendRedirect(httpServletRequest.getContextPath() + "/info/errorauth");
+            return;
         }
 
         // если дошло до этого места то авторизация успешна
