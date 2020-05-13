@@ -47,7 +47,7 @@ public class ObjectsTracks {
     // datebegin - дата начала в формате гггг-мм-дд
     // dateend - дата окончания в формате гггг-мм-дд
     // sid - идентификатор сессии, используется если для получения данных используется существующая сессия, если не задан то будет создана новая
-    @GET
+    @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/gettrack/{invnom}/{datebegin}/{dateend}{sid:(/sid/[^/]+?)?}")
     public Response getObjectTrack(@PathParam("invnom") String invnom,
@@ -483,7 +483,7 @@ public class ObjectsTracks {
 
     // получаем данные о месторасположении тс
     // invnom - инвентарный номер
-    @GET
+    @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/getlastpos/{invnom}")
     public Response getObjectLastPosition(@PathParam("invnom") String invnom) {

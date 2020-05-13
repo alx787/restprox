@@ -41,6 +41,6 @@ CREATE TABLE restproxdb.users (
 	name VARCHAR (100) DEFAULT '' NOT NULL,
 	password VARCHAR (100) DEFAULT '' NOT NULL,
 	passhash VARCHAR (64) DEFAULT '' NOT NULL,
-	passtoken VARCHAR (24) DEFAULT '' NOT NULL,
+	passtoken VARCHAR (64) DEFAULT '' NOT NULL,
 	PRIMARY KEY (id)
 )  ENGINE = INNODB DEFAULT CHARSET = utf8 COLLATE = utf8_general_ci;

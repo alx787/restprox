@@ -18,7 +18,7 @@
             <column name="passhash" sql-type="varchar(64)" length="64"/>
         </property>
         <property name="passtoken">
-            <column name="passtoken" sql-type="varchar(24)" length="24"/>
+            <column name="passtoken" sql-type="varchar(64)" length="64"/>
         </property>
     </class>
 </hibernate-mapping>

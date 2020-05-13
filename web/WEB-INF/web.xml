@@ -57,6 +57,7 @@
 
     <filter-mapping>
         <filter-name>authFilter</filter-name>
-        <url-pattern>/*</url-pattern>
+        <url-pattern>/wl/*</url-pattern>
+        <url-pattern>/track/*</url-pattern>
     </filter-mapping>
 </web-app>

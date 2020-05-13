@@ -54,7 +54,7 @@ public class User {
     }
 
     @Basic
-    @Column(name = "passtoken", nullable = false, length = 24)
+    @Column(name = "passtoken", nullable = false, length = 64)
     public String getPasstoken() {
         return passtoken;
     }

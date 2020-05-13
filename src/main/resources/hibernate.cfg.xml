@@ -28,6 +28,7 @@
 
         <mapping class="ru.ath.alx.model.Transport"/>
         <mapping class="ru.ath.alx.model.Auth"/>
+        <mapping class="ru.ath.alx.model.User"/>
         <!--<mapping resource="ru/ath/alx/model/Transport.hbm.xml"/>-->
     </session-factory>
 </hibernate-configuration>

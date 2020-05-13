@@ -7,13 +7,21 @@ import com.google.gson.JsonParser;
 import org.apache.log4j.Logger;
 import ru.ath.alx.dao.AuthService;
 import ru.ath.alx.dao.TransportService;
+import ru.ath.alx.dao.UserService;
 import ru.ath.alx.model.Transport;
+import ru.ath.alx.model.User;
+import ru.ath.alx.util.AuthUtil;
 import ru.ath.alx.util.ConverterUtil;
 import ru.ath.alx.util.WebRequestUtil;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -26,6 +34,7 @@ public class Info {
     private TransportService trService = new TransportService();
 
     private AuthService authService = new AuthService();
+    private UserService userService = new UserService();
 
     private static final String URL_GET_MARS = "https://wialon.kiravto.ru/wialon/ajax.html?svc=messages/load_interval&params={\"itemId\":__object_id__,\"timeFrom\":__date_beg__,\"timeTo\":__date_end__,\"flags\":1,\"flagsMask\":65281,\"loadCount\":50000}&sid=%s";
     private static final String URL_GET_CLEAR_MARS = "https://wialon.kiravto.ru/wialon/ajax.html?svc=messages/unload&params={}&sid=%s";
@@ -36,19 +45,102 @@ public class Info {
     @Path("/test")
     public Response info() {
 
-        log.warn("token: " + authService.getToken());
+//        log.warn("token: " + authService.getToken());
 
         return Response.ok("{\"status\":\"OK\", \"description\":\"info test message\"}").build();
 
     }
 
+
+    // сервис - заглушка возвращающий сообщение об ошибке авторизации
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Path("/auth")
-    public Response auth() {
+    @Path("/errorauth")
+    public Response errorAuth() {
 
-        return Response.ok("{\"status\":\"error\", \"description\":\"none authorized\"}").build();
+        return Response.ok("{\"status\":\"error\", \"description\":\"error auth\"}").build();
+
+    }
+
+
+    // принимает логин пароль и формирует новый токен
+    // проверять валидность токена или получать свежий токен можно при начале работы приложения
+
+    // test
+    // http://localhost:8080/restprox/info/newauth
+    //    {
+    //        "login":"alx",
+    //        "pass":"345"
+    //    }
+
+    // в теле запроса должны быть post данные в формате json
+    // {"login":"...", "pass":"..."} - реавторизация
+    // возвращает {"stasus":"ok", content:{"userid":"...","token":"..."}}
+    // {"userid":"...", "token":"..."} - просто авторизация
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Path("/newauth")
+//    public Response newAuth(InputStream incomingData) {
+      public Response newAuth(String incomingData) {
+
+
+//        StringBuffer stringBuffer = new StringBuffer();
+//        String oneLine = null;
+//
+//        try {
+//            BufferedReader reader = new BufferedReader(new InputStreamReader(incomingData));
+//            while ((oneLine = reader.readLine()) != null)
+//                stringBuffer.append(oneLine);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            log.warn("ошибка при чтении post данных при реавторизации");
+//            return Response.ok("{\"status\":\"error\", \"description\":\"error reauth\"}").build();
+//        }
+
+        JsonParser parser = new JsonParser();
+//        JsonObject jsonPostData = parser.parse(stringBuffer.toString()).getAsJsonObject();
+        JsonObject jsonPostData = parser.parse(incomingData).getAsJsonObject();
+
+        String login = null;
+        String passhash = null;
+
+        login = jsonPostData.get("login").getAsString();
+        passhash = jsonPostData.get("pass").getAsString();
+
+        log.warn("login: " + login);
+        log.warn("passhash: " + passhash);
+
+        if (login == null || passhash == null) {
+            log.warn("ошибка при получении логина или пароля при реавторизации");
+            return Response.ok("{\"status\":\"error\", \"description\":\"error reauth\"}").build();
+        }
+
+        if (!AuthUtil.checkLoginPass(login, passhash)) {
+            log.warn("ошибка при получении данных пользователя, неверное логин или пароль");
+            return Response.ok("{\"status\":\"error\", \"description\":\"error reauth\"}").build();
+        }
+
+
+        User user = userService.findUserByLoginAndHash(login, passhash);
+        if (user == null) {
+            log.warn("ошибка при получении данных пользователя при реавторизации");
+            return Response.ok("{\"status\":\"error\", \"description\":\"error reauth\"}").build();
+        }
+
+        JsonObject answObj = new JsonObject();
+        answObj.addProperty("status", "ok");
+
+        JsonObject contentObj = new JsonObject();
+        contentObj.addProperty("id", String.valueOf(user.getId()));
+        contentObj.addProperty("token", user.getPasstoken());
+
+        answObj.add("content", contentObj);
+
+        Gson gson = new Gson();
+
+        return Response.ok(gson.toJson(answObj)).build();
 
     }
 
