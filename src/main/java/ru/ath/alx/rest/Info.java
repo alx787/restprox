@@ -14,14 +14,9 @@ import ru.ath.alx.util.AuthUtil;
 import ru.ath.alx.util.ConverterUtil;
 import ru.ath.alx.util.WebRequestUtil;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -110,10 +105,10 @@ public class Info {
         String passhash = null;
 
         login = jsonPostData.get("login").getAsString();
-        passhash = jsonPostData.get("pass").getAsString();
+        passhash = jsonPostData.get("password").getAsString();
 
-//        log.warn("login: " + login);
-//        log.warn("passhash: " + passhash);
+        log.warn("login: " + login);
+        log.warn("passhash: " + passhash);
 
         if (login == null || passhash == null) {
             log.warn("ошибка при получении логина или пароля при реавторизации");
@@ -136,7 +131,7 @@ public class Info {
         answObj.addProperty("status", "ok");
 
         JsonObject contentObj = new JsonObject();
-        contentObj.addProperty("id", String.valueOf(user.getId()));
+        contentObj.addProperty("userid", String.valueOf(user.getId()));
         contentObj.addProperty("token", user.getPasstoken());
 
         answObj.add("content", contentObj);
@@ -156,6 +151,8 @@ public class Info {
 
     // получение точек для построения трека - маршрута движения тс
     // пока лежит тут в тестовой части
+    // нужно продумать передачу параметров даты начала и даты окончания со временем, чтобы получать точки по поездкам
+    // возможно нужен будет параметр, позволяющий уменьшать количество передаваемых точек, например количество пропусков
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/mars/{invnom}/{datebeg}/{dateend}")

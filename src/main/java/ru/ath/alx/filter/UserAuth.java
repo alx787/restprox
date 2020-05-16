@@ -8,7 +8,6 @@ import ru.ath.alx.util.AuthUtil;
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.BufferedReader;
 import java.io.IOException;
 
 public class UserAuth implements Filter {
@@ -43,24 +42,11 @@ public class UserAuth implements Filter {
         RequestWrapper requestWrapper = new RequestWrapper(httpServletRequest);
         String postData = requestWrapper.getBody();
 
-//        log.warn("post data: " + postData);
-//        log.warn("uri: " + requestWrapper.getRequestURI());
-//
-//        log.warn("server name: " + httpServletRequest.getServerName());
-//        log.warn("context path: " + httpServletRequest.getContextPath());
-
-
-//        StringBuffer stringBuffer = new StringBuffer();
-//        String postLine = null;
-//
-//        try {
-//            BufferedReader reader = httpServletRequest.getReader();
-//            while ((postLine = reader.readLine()) != null)
-//                stringBuffer.append(postLine);
-//        } catch (Exception e) { /*report an error*/ }
 
         if (postData == null || postData.isEmpty()) {
-            httpServletResponse.sendRedirect(httpServletRequest.getContextPath() + "/info/errorauth");
+//            httpServletResponse.sendRedirect(httpServletRequest.getContextPath() + "/info/errorauth");
+            RequestDispatcher rd = servletRequest.getRequestDispatcher("/info/errorauth");
+            rd.forward(servletRequest, servletResponse);
             return;
         }
 
@@ -79,6 +65,8 @@ public class UserAuth implements Filter {
             token = jsonPostData.get("token").getAsString();
         }
 
+        log.warn("userid: " + userid);
+        log.warn("token: " + token);
 
         // проверка токена
         if (userid != null && token != null) {
