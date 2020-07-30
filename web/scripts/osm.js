@@ -5,33 +5,15 @@ function getObjectsFromServ() {
 
 function addObjectsToMap(lon, lat, objId, objName) {
 
-    // var lonlat = new OpenLayers.LonLat(49.602077, 58.610018);
-    //var lonlat = new OpenLayers.LonLat(lon, lat);
-
-    // Маркер текущего еквипмента
-    //var size = new OpenLayers.Size(32, 32);//размер картинки для маркера
-    //смещение картинки для маркера
-    //var offset = new OpenLayers.Pixel(-(size.w / 2), -size.h);
-    //картинка для маркера
-    //var icon = new OpenLayers.Icon('img/map_marker_icon_32_32.png', size, offset);
-    //добавляем маркер к слою маркеров
-    //layerMarkers.addMarker(new OpenLayers.Marker(lonlat, icon)); //координаты вставки маркера //иконка маркера
-
-    //map.layers[1].addMarker(new OpenLayers.Marker(lonlat, icon));
-
-
+    // маркер
     var point0 = new OpenLayers.Geometry.Point(parseFloat(lon), parseFloat(lat));
     point0.transform(new OpenLayers.Projection("EPSG:4326"), new OpenLayers.Projection("EPSG:900913"));
     map.layers[1].addFeatures(new OpenLayers.Feature.Vector(point0, { label: "", name: "title", PointId: "asd" }));
 
 
+    // точка на карте с надписью
     var point0 = new OpenLayers.Geometry.Point(lon, lat);
     point0.transform(new OpenLayers.Projection("EPSG:4326"), new OpenLayers.Projection("EPSG:900913"));
-
-    //Для создание объекта Feature использовался класс OpenLayers.Feature.Vector
-    //layerLables.addFeatures(new OpenLayers.Feature.Vector(point0, { label: "atx", name: "title", ImgId: layerLables }));
-
-    //map.layers[2].addFeatures(new OpenLayers.Feature.Vector(point0, { label: "atx", name: "title", ImgId: map.layers[2] }));
     map.layers[2].addFeatures(new OpenLayers.Feature.Vector(point0, { label: "atx", name: "title", ImgId: map.layers[2] }));
 
 }
@@ -65,39 +47,8 @@ function addLine(lon1, lat1, lon2, lat2, title, ident, layr) {
     var myFeature = new OpenLayers.Feature.Vector(lineString, {}, myLineStyle);
 
     map.layers[2].addFeatures([myFeature]);
-    //map.addLayer(vector);
 
-//     for (var i = 0; i < coords.length; i++) {
-//                 var d = coords[i].split(' ');
-//                 var ttt = new OpenLayers.LonLat(parseFloat(d[0]), parseFloat(d[1]));
-//                 var point0 = new OpenLayers.Geometry.Point(ttt.lon, ttt.lat);
-//                 point0.transform(new OpenLayers.Projection("EPSG:4326"), new OpenLayers.Projection("EPSG:900913"));
-//                 featuress.push(point0);
-//             }
-// //Массив точек порождает линию, из нее создается полигон
-//             var linearRing2 = new OpenLayers.Geometry.LinearRing(featuress);
-//             var polygonFeature2 = new OpenLayers.Feature.Vector(new OpenLayers.Geometry.Polygon([linearRing2]), { label: title, PolyID: ident });
-//             layr.addFeatures(polygonFeature2);
 }
-
-function getParams() {
-    var tmp = new Array();    // два вспомагательных
-    var tmp2 = new Array();   // массива
-    var param = new Array();
-
-    var get = location.search;  // строка GET запроса
-    if(get != '') {
-        tmp = (get.substr(1)).split('&'); // разделяем переменные
-        for(var i = 0; i < tmp.length; i++) {
-            tmp2 = tmp[i].split('=');   // массив param будет содержать
-            param[tmp2[0]] = tmp2[1];   // пары ключ(имя переменной)->значение
-        }
-    };
-    return param;
-}
-
-
-
 
 function initMap() {
     map = new OpenLayers.Map("OSMap");//инициализация карты
@@ -191,7 +142,6 @@ function initMap() {
 
     addLine(49.602077, 58.610018, 49.603077, 58.611018, null, null, null);
 
-    console.log(getParams());
 
 
     var lonlat = new OpenLayers.LonLat(49.602077, 58.610018);

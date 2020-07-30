@@ -9,17 +9,34 @@
 
 
 
+    <link rel="stylesheet" type="text/css" href="css/style.css"/ >
     <link rel="stylesheet" type="text/css" href="scripts/jqdatetimepicker/jquery.datetimepicker.min.css"/ >
 
 
     <script type="text/javascript" src="scripts/jq/jquery-3.5.1.min.js"></script>
     <script type="text/javascript" src="scripts/jqdatetimepicker/jquery.datetimepicker.full.min.js"></script>
     <script type="text/javascript" src="scripts/openlayer/OpenLayers.js"></script>
+
     <script type="text/javascript" src="scripts/osm.js"></script>
+    <script type="text/javascript" src="scripts/func.js"></script>
 
 
     <script type="text/javascript">
         $(document).ready(function(){
+
+            var params = getUrlParams();
+
+            console.log(params);
+            console.log(params.length);
+
+            if (params.length != 3) {
+                $("#dtpicker1").datetimepicker();
+                $("#dtpicker2").datetimepicker();
+                return false;
+            }
+
+            $("#invnom").val(params[0]);
+
             //alert("привет");
             $.datetimepicker.setLocale('ru');
 
@@ -28,9 +45,8 @@
                 lang:'ru',
                 mask: true,
                 todayButton: true,
+                value: params[1]
             });
-
-            $("#dtpicker1").val("01.02.2020 22:01");
 
 
             $("#dtpicker2").datetimepicker({
@@ -38,87 +54,52 @@
                 lang:'ru',
                 mask: true,
                 todayButton: true,
+                value: params[2]
             });
-            // $('#datetimepicker').setLocale('ru');
 
-            //$("#datetimepicker").datepicker();
 
             $("#refreshBtn").on('click', function () {
-                var d = $('#dtpicker1').datetimepicker('getValue');
-                console.log(d.getFullYear());
-                console.log(d);
-                //console.log(d.value);
-
+                drawRoute();
             });
 
         });
     </script>
 
 
-
-
-
-
 </head>
-<body onload="initMap();">
+    <body onload="initMap();">
 
-<div id="init-elements-json" style="display: none;">
-    [
-    {'invnom':'30482','regnom':'0004КХ 43 RUS'},
-    {'invnom':'30700','regnom':'0072КХ 43 RUS'},
-    {'invnom':'30549','regnom':'0075КР 43 RUS'}
-    ]
-</div>
+        <div id="OSMap">
 
+            <div class="wrapper">
 
+                <div class="title fontbold">Передвижение ТС</div>
+                <div class="title">р.н. А000АА 43 RUS инв.н <input id="invnom" value="" type="text"></div>
 
+                <div class="controls">
+                    <div class="clearboth">
+                        <label for="dtpicker1">За период с: </label>
+                        <input class="datepicker" id="dtpicker1" type="text" />
+                    </div>
 
+                    <div class="clearboth divmargins">
+                        <label for="dtpicker2">по: </label>
+                        <input class="datepicker" id="dtpicker2" type="text" />
+                    </div>
 
+                    <div class="clearboth divmargins">
+                        <label for="probeg">ПРОБЕГ: </label>
+                        <input id="probeg" type="text" />
+                    </div>
 
+                    <div class="clearboth textcenter">
+                        <input id="refreshBtn" type="button" value="Обновить"></input>
+                    </div>
+                </div>
 
-<div id="OSMap" style="width: 100%; height: 800px">
-
-
-    <div style="position: absolute; z-index: 1000; width: 220px; height: 192px; border: 1px solid #FFFFFF; top: 100px; color: #FFFFFF; background-color: #00008b; font-family: Roboto,RobotoDraft,Helvetica,Arial,sans-serif; font-size: 12px">
-
-        <div style="text-align: center; font-size: 12px; padding: 5px 0; font-weight: bold;">Передвижение ТС</div>
-
-        <div style="text-align: center; font-size: 12px; padding: 5px 0;">р.н. А000АА 43 RUS инв.н 121212</div>
-
-
-
-        <div style="text-align: left; font-size: 12px; padding: 5px 5px;">
-            <div style="clear: both;">
-                <label for="dtpicker1">За период с: </label>
-                <input style="border: 1px solid #FFFFFF; height: 15px; width: 120px; float: right;" id="dtpicker1" type="text" />
             </div>
 
-            <div style="clear: both; margin: 12px 0 20px 0;">
-                <label for="dtpicker2">по: </label>
-                <input style="border: 1px solid #FFFFFF; height: 15px; width: 120px; float: right;"  id="dtpicker2" type="text" />
-            </div>
-
-            <div style="clear: both; margin: 12px 0 20px 0;">
-                <label for="probeg">ПРОБЕГ: </label>
-                <input style="border: 1px solid #0092DA; height: 15px; width: 120px; float: right; background-color: #000000; color: #FFF; font-weight: bold;"  id="probeg" type="text" />
-            </div>
-
-
-            <div style="clear: both; text-align: center;">
-                <input id="refreshBtn" style="padding: 0; border: 1px solid #FFFFFF; height: 25px; width: 120px;" type="button" value="Обновить"></input>
-            </div>
         </div>
-
-
-    </div>
-
-
-
-
-</div>
-</body>
-
-
-
+    </body>
 
 </html>
