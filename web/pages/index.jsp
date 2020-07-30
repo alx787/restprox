@@ -8,9 +8,11 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <html>
   <head>
-    <title>$Title$</title>
+    <title>user</title>
   </head>
   <body>
-  $END$
+    <p>
+      <% out.println(request.getAttribute("name")); %>
+    </p>
   </body>
 </html>

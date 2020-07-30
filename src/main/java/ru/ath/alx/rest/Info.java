@@ -26,9 +26,6 @@ public class Info {
 
     private static final Logger log = Logger.getLogger(Info.class);
 
-//    private TransportService trService = new TransportService();
-
-//    private AuthService authService = new AuthService();
     private UserService userService = new UserService();
 
 
@@ -37,6 +34,8 @@ public class Info {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/test")
     public Response info() {
+
+        // вобщем все запросы к рест стали через /rest
 
 //        log.warn("token: " + authService.getToken());
 
