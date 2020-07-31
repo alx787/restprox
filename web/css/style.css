@@ -5,18 +5,16 @@
 
 .wrapper {
     position: absolute;
-    z-index: 1000;
+    top: 100px;
     width: 220px;
     height: 192px;
+    z-index: 1000;
     border: 1px solid #FFFFFF;
-    top: 100px;
     color: #FFFFFF;
     background-color: #00008b;
     font-family: Roboto,RobotoDraft,Helvetica,Arial,sans-serif;
     font-size: 12px;
 }
-
-
 
 .title {
     text-align: center;
@@ -78,4 +76,28 @@
 
 #refreshBtn:hover, #dtpicker1:hover, #dtpicker2:hover {
     cursor: pointer;
+}
+
+.errorwrapper {
+    display: none;
+    position: absolute;
+    top: 300px;
+    width: 220px;
+    z-index: 1000;
+    border: 1px solid #FFFFFF;
+    color: #FFFFFF;
+    background-color: #FF0000;
+    font-family: Roboto,RobotoDraft,Helvetica,Arial,sans-serif;
+    font-size: 12px;
+}
+
+#errorclosebtn {
+    position: absolute;
+    top: 1px;
+    left: 166px;
+}
+
+#errorclosebtn:hover {
+    cursor: pointer;
+    text-decoration: underline;
 }

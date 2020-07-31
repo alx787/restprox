@@ -58,6 +58,35 @@ function formatDate(varDate) {
     return sDay + "." + sMonth + "." + sYear + "-" + sHours + ":" + sMinutes;
 }
 
+// показать сообщение об ошибке
+function showErrorMsg(msg) {
+    $("#errormsg").html(msg + "<br/>");
+    $(".errorwrapper").css("display", "block");
+}
+
+// отрисовка линий по координатам
+function drawLines(coords) {
+
+    if (coords.length < 2) {
+        return false;
+    }
+
+    var begelem = coords[0];
+    var endelem = coords[0];
+
+    for (var i = 1; i < coords.length; i++) {
+        endelem = coords[i];
+
+        addLine(begelem.x, begelem.y, endelem.x, endelem.y);
+
+        begelem = endelem;
+
+    }
+
+}
+
+
+
 
 // функция отрисовки маршрута - вызывается она
 function drawRoute() {
@@ -73,6 +102,65 @@ function drawRoute() {
     var invnom = $("#invnom").val();
     var datebeg = formatDate($('#dtpicker1').datetimepicker('getValue'));
     var dateend = formatDate($('#dtpicker2').datetimepicker('getValue'));
+
+    // 2 - проверяем нет ли пустых, составляем валидные
+    if ($.trim(invnom) == "") {
+        showErrorMsg("не заполнен инвентарный номер");
+        return false;
+    }
+
+    if ($.trim(datebeg) == "") {
+        showErrorMsg("не заполнена дата начала");
+        return false;
+    }
+
+    if ($.trim(dateend) == "") {
+        showErrorMsg("не заполнена дата окончания");
+        return false;
+    }
+
+    // добавим секунды к датам
+    datebeg = datebeg + ":00";
+    dateend = dateend + ":00";
+
+    // очистка слоев
+    map.layers[1].removeAllFeatures();
+    map.layers[2].removeAllFeatures();
+
+    // 3 - отправляем рест запрос
+
+    var restUrl = "rest/track/mars/" + invnom + "/" + datebeg + "/" + dateend;
+
+    $.ajax({
+        url: restUrl,
+        type: 'post',
+        enctype: 'multipart/form-data',
+        //processData: false,  // Important!
+        dataType: 'json',
+        //data: formDataTicket,
+        cache: false,
+        async: true,
+        // async: asyncFlag,
+        contentType: "application/json; charset=utf-8",
+        //contentType: false,
+        success: function (data) {
+            if (data.status == "error") {
+                showErrorMsg(data.description);
+            } else {
+                drawLines(data.content);
+            }
+
+            console.log(data);
+        },
+        error: function (data) {
+            showErrorMsg("ошибка при получении данных с сервера");
+        },
+        complete: function () {
+
+        },
+
+    });
+
 
     console.log(invnom);
     console.log($('#dtpicker1').datetimepicker('getValue'));

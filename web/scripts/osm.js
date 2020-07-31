@@ -21,7 +21,8 @@ function addObjectsToMap(lon, lat, objId, objName) {
 
 
 //Предполагаемый форма данных: координаты разделены точкой с запятой, долгота с широтой разделены пробелом
-function addLine(lon1, lat1, lon2, lat2, title, ident, layr) {
+//function addLine(lon1, lat1, lon2, lat2, title, ident, layr) {
+function addLine(lon1, lat1, lon2, lat2) {
     var featuress = Array();
 
 

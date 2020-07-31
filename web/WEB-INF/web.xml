@@ -53,6 +53,14 @@
     </servlet-mapping>
 
 
+    <!--<servlet-mapping>-->
+        <!--<servlet-name>default</servlet-name>-->
+        <!--<url-pattern>/*</url-pattern>-->
+        <!--<url-pattern>/scripts/*</url-pattern>-->
+        <!--<url-pattern>/scripts/jq/*</url-pattern>-->
+        <!--<url-pattern>/scripts/jqdatetimepicker/*</url-pattern>-->
+    <!--</servlet-mapping>-->
+
 
     <filter>
         <filter-name>authFilter</filter-name>
@@ -63,11 +71,11 @@
         <!--</init-param>-->
     </filter>
 
-    <filter-mapping>
-        <filter-name>authFilter</filter-name>
-        <url-pattern>/rest/wl/*</url-pattern>
-        <url-pattern>/rest/track/*</url-pattern>
-    </filter-mapping>
+    <!--<filter-mapping>-->
+        <!--<filter-name>authFilter</filter-name>-->
+        <!--<url-pattern>/rest/wl/*</url-pattern>-->
+        <!--<url-pattern>/rest/track/*</url-pattern>-->
+    <!--</filter-mapping>-->
 
     <!-- все запросы перенаправлять только через SSL -->
     <!--<security-constraint>-->

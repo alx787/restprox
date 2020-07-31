@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-    <title>Bootstrap 101 Template</title>
+    <title>NON Bootstrap 101 Template</title>
 
 
 
@@ -13,9 +13,13 @@
     <link rel="stylesheet" type="text/css" href="scripts/jqdatetimepicker/jquery.datetimepicker.min.css"/ >
 
 
+    <!--<script type="text/javascript" src="scripts/jq/jquery-3.5.1.min.js"></script>-->
     <script type="text/javascript" src="scripts/jq/jquery-3.5.1.min.js"></script>
     <script type="text/javascript" src="scripts/jqdatetimepicker/jquery.datetimepicker.full.min.js"></script>
-    <script type="text/javascript" src="scripts/openlayer/OpenLayers.js"></script>
+
+    <!--<script type="text/javascript" src="scripts/openlayer/OpenLayers.js"></script>-->
+
+    <script src="http://www.openlayers.org/api/OpenLayers.js"></script>
 
     <script type="text/javascript" src="scripts/osm.js"></script>
     <script type="text/javascript" src="scripts/func.js"></script>
@@ -26,14 +30,42 @@
 
             var params = getUrlParams();
 
-            console.log(params);
-            console.log(params.length);
+            // console.log(params);
+            // console.log(params.length);
+
+            // закрыть сообщения об ошибке
+            $("#errorclosebtn").on("click", function(){
+                $(".errorwrapper").css("display", "none");
+            })
 
             if (params.length != 3) {
                 $("#dtpicker1").datetimepicker();
                 $("#dtpicker2").datetimepicker();
+
+                showErrorMsg("Недостаточно параметров для построения маршрута");
                 return false;
             }
+
+            var msg = "";
+            for (var i = 0; i < params.length; i++) {
+                if ($.trim(params[i]) == "") {
+                    if (i == 0) {
+                        msg = msg + "не заполнен инвентарный номер\n";
+                    }
+                    if (i == 1) {
+                        msg = msg + "не заполнена дата начала\n";
+                    }
+                    if (i == 2) {
+                        msg = msg + "не заполнена дата окончания\n";
+                    }
+                }
+            }
+
+            if (msg != "") {
+                showErrorMsg(msg);
+                return false;
+            }
+
 
             $("#invnom").val(params[0]);
 
@@ -98,6 +130,15 @@
                 </div>
 
             </div>
+
+            <div class="errorwrapper">
+                <div id="errorclosebtn">Закрыть</div>
+
+                <div class="title fontbold">ОШИБКА</div>
+
+                <div id="errormsg" class="title">Сообщение об ошибке</div>
+            </div>
+
 
         </div>
     </body>
