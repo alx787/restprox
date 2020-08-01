@@ -3,18 +3,18 @@ function getObjectsFromServ() {
     // получить данные с
 }
 
-function addObjectsToMap(lon, lat, objId, objName) {
+function addObjectsToMap(lon, lat, objId, objName, objLabel) {
 
     // маркер
     var point0 = new OpenLayers.Geometry.Point(parseFloat(lon), parseFloat(lat));
     point0.transform(new OpenLayers.Projection("EPSG:4326"), new OpenLayers.Projection("EPSG:900913"));
-    map.layers[1].addFeatures(new OpenLayers.Feature.Vector(point0, { label: "", name: "title", PointId: "asd" }));
+    map.layers[1].addFeatures(new OpenLayers.Feature.Vector(point0, { label: "", name: objName, PointId: objId }));
 
 
     // точка на карте с надписью
     var point0 = new OpenLayers.Geometry.Point(lon, lat);
     point0.transform(new OpenLayers.Projection("EPSG:4326"), new OpenLayers.Projection("EPSG:900913"));
-    map.layers[2].addFeatures(new OpenLayers.Feature.Vector(point0, { label: "atx", name: "title", ImgId: map.layers[2] }));
+    map.layers[2].addFeatures(new OpenLayers.Feature.Vector(point0, { label: objLabel, name: objName, ImgId: objId }));
 
 }
 
@@ -85,9 +85,6 @@ function initMap() {
     map.addLayer(layerImage);//добавляем этот слой к карте
 
 
-
-
-
     //labelYOffset - сдвиг текста по вертикале относительно точки
     var stylePoint = new OpenLayers.Style(
         {
@@ -139,9 +136,10 @@ function initMap() {
     map.addControl(new OpenLayers.Control.KeyboardDefaults());
 
 
-    addObjectsToMap(49.602077, 58.610018, null, null);
+    addObjectsToMap(49.602077, 58.610018, "atx", "atx", "ОАО АТХ");
 
-    addLine(49.602077, 58.610018, 49.603077, 58.611018, null, null, null);
+
+    // addLine(49.602077, 58.610018, 49.603077, 58.611018, null, null, null);
 
 
 

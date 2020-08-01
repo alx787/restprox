@@ -71,10 +71,31 @@ function drawLines(coords) {
         return false;
     }
 
+    var lonlat = new OpenLayers.LonLat(coords[0].x, coords[0].y);
+    map.setCenter(lonlat.transform(
+        new OpenLayers.Projection("EPSG:4326"), // переобразование в WGS 1984
+        new OpenLayers.Projection("EPSG:900913") // переобразование проекции
+        )
+    );
+
+
     var begelem = coords[0];
     var endelem = coords[0];
 
+    // маркер начала
+    addObjectsToMap(begelem.x, begelem.y, "p_0", "p_0", begelem.time);
+
+    var ii = 0; // счетчик точек
+
     for (var i = 1; i < coords.length; i++) {
+
+        ii++;
+        if (ii >= 100) {
+            ii = 0;
+            // маркер середины пути
+            addObjectsToMap(begelem.x, begelem.y, "p_" + i.toString(), "p_" + i.toString(), begelem.time);
+        }
+
         endelem = coords[i];
 
         addLine(begelem.x, begelem.y, endelem.x, endelem.y);
@@ -82,6 +103,11 @@ function drawLines(coords) {
         begelem = endelem;
 
     }
+
+    // маркер конца пути
+    addObjectsToMap(begelem.x, begelem.y, "p_" + i.toString(), "p_" + i.toString(), begelem.time);
+
+
 
 }
 
