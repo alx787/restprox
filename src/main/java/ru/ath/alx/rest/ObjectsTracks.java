@@ -85,6 +85,10 @@ public class ObjectsTracks {
         Date pDateEnd = null;
 
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+        SimpleDateFormat formatFull = new SimpleDateFormat("dd.MM.yyyy-HH:mm:ss");
+
+
+
 //        format.setTimeZone(java.util.TimeZone.getTimeZone("GMT+3"));
         format.setTimeZone(java.util.TimeZone.getTimeZone("UTC"));
 
@@ -96,8 +100,17 @@ public class ObjectsTracks {
 
 
         try {
-            pDateBegin = format.parse(datebegin);
-            pDateEnd = format.parse(dateend);
+            if (datebegin.length() == 10) {
+                pDateBegin = format.parse(datebegin);
+            } else {
+                pDateBegin = formatFull.parse(datebegin);
+            };
+
+            if (dateend.length() == 10) {
+                pDateEnd = format.parse(dateend);
+            } else {
+                pDateEnd = formatFull.parse(dateend);
+            }
         } catch (ParseException e) {
             e.printStackTrace();
             log.warn("ошибка получения периода. дата начала: " + datebegin + ", дата окончания: " + dateend);
@@ -312,10 +325,16 @@ public class ObjectsTracks {
                 String dPprobeg = oneResRowArr.get(7).getAsString();
 
                 // максимальная скорость, координаты фиксации
-                placeJson = oneResRowArr.get(8).getAsJsonObject();
-                String sMaxSpeed = placeJson.get("t").getAsString();
-                String sMaxSpeedX = placeJson.get("x").getAsString();
-                String sMaxSpeedY = placeJson.get("y").getAsString();
+                String sMaxSpeed = "0";
+                String sMaxSpeedX = "-";
+                String sMaxSpeedY = "-";
+
+                if (oneResRowArr.get(8).isJsonObject()) {
+                    placeJson = oneResRowArr.get(8).getAsJsonObject();
+                    sMaxSpeed = placeJson.get("t").getAsString();
+                    sMaxSpeedX = placeJson.get("x").getAsString();
+                    sMaxSpeedY = placeJson.get("y").getAsString();
+                }
 
                 // потрачено по нормам
                 String sFuelRate = oneResRowArr.get(9).getAsString();

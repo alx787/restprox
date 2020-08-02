@@ -92,12 +92,23 @@
 }
 
 #errorclosebtn {
-    position: absolute;
-    top: 1px;
-    left: 166px;
-}
+     position: absolute;
+     top: 1px;
+     left: 166px;
+ }
 
 #errorclosebtn:hover {
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+#tracksclosebtn {
+    position: absolute;
+    top: 1px;
+    left: 495px;
+}
+
+#tracksclosebtn:hover {
     cursor: pointer;
     text-decoration: underline;
 }

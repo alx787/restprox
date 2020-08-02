@@ -2,6 +2,7 @@
 // разбор строки url, возвращает массив параметров url
 // строка должна выглядеть так
 // http://localhost:8080/restprox/route.html?invnom=45944&datebeg=30.07.2020-08:00&dateend=30.07.2020-17:00
+// http://localhost:8080/restprox/route.html?invnom=76077&datebeg=30.07.2020-08:00&dateend=30.07.2020-17:00
 // параметры распределятся по массиву соответствующим образом
 function getUrlParams() {
     var tmp = new Array();    // два вспомагательных
@@ -67,9 +68,24 @@ function showErrorMsg(msg) {
 // отрисовка линий по координатам
 function drawLines(coords) {
 
-    if (coords.length < 2) {
+    if (coords.length == 0) {
         return false;
     }
+
+    if (coords.length == 1) {
+        var lonlat = new OpenLayers.LonLat(coords[0].x, coords[0].y);
+        map.setCenter(lonlat.transform(
+            new OpenLayers.Projection("EPSG:4326"), // переобразование в WGS 1984
+            new OpenLayers.Projection("EPSG:900913") // переобразование проекции
+            )
+        );
+
+        addObjectsToMap(coords[0].x, coords[0].y, "p_0", "p_0", coords[0].time);
+
+        return false;
+    }
+
+
 
     var lonlat = new OpenLayers.LonLat(coords[0].x, coords[0].y);
     map.setCenter(lonlat.transform(
@@ -107,7 +123,47 @@ function drawLines(coords) {
     // маркер конца пути
     addObjectsToMap(begelem.x, begelem.y, "p_" + i.toString(), "p_" + i.toString(), begelem.time);
 
+}
 
+// обновить регистрационный номер
+function refreshRegnom(invnom) {
+
+    if ((invnom == null) || ($.trim(invnom) == "")) {
+        showErrorMsg("пустой инв. номер");
+        return false;
+    }
+
+    var restUrl = "rest/wl/getobject/db/" + invnom;
+
+    $.ajax({
+        url: restUrl,
+        type: 'post',
+        enctype: 'multipart/form-data',
+        //processData: false,  // Important!
+        dataType: 'json',
+        //data: formDataTicket,
+        cache: false,
+        async: true,
+        // async: asyncFlag,
+        contentType: "application/json; charset=utf-8",
+        //contentType: false,
+        success: function (data) {
+            if (data.status == "error") {
+                showErrorMsg(data.description);
+            } else {
+                if (data.content.length == 1) {
+                    $("#regnom").text(data.content[0].registrationplate);
+                }
+            }
+        },
+        error: function (data) {
+            showErrorMsg("ошибка при получении данных с сервера");
+        },
+        complete: function () {
+
+        },
+
+    });
 
 }
 
@@ -155,6 +211,7 @@ function drawRoute() {
 
     // 3 - отправляем рест запрос
 
+
     var restUrl = "rest/track/mars/" + invnom + "/" + datebeg + "/" + dateend;
 
     $.ajax({
@@ -173,13 +230,14 @@ function drawRoute() {
             if (data.status == "error") {
                 showErrorMsg(data.description);
             } else {
+                // 4 - получаем данные
+                // 5 - обрабатываем данные, рисуем маршрут
                 drawLines(data.content);
             }
-
             console.log(data);
         },
         error: function (data) {
-            showErrorMsg("ошибка при получении данных с сервера");
+            showErrorMsg("ошибка при получении данных для построения маршута");
         },
         complete: function () {
 
@@ -188,11 +246,51 @@ function drawRoute() {
     });
 
 
-    console.log(invnom);
-    console.log($('#dtpicker1').datetimepicker('getValue'));
-    console.log(datebeg);
-    console.log($('#dtpicker2').datetimepicker('getValue'));
-    console.log(dateend);
+    // получим данные о пробеге
+    restUrl = "rest/track/gettrack/" + invnom + "/" + datebeg + "/" + dateend;
+
+        $.ajax({
+
+        url: restUrl,
+        type: 'post',
+        enctype: 'multipart/form-data',
+        //processData: false,  // Important!
+        dataType: 'json',
+        //data: formDataTicket,
+        cache: false,
+        async: true,
+        // async: asyncFlag,
+        contentType: "application/json; charset=utf-8",
+        //contentType: false,
+        success: function (data) {
+            if (data.status == "error") {
+                showErrorMsg("Пробег не вычислен. " + data.description);
+            } else {
+                $("#probeg").val(data.content.probeg + " / " + data.content.fuelrate);
+            }
+            console.log(data);
+        },
+        error: function (data) {
+            showErrorMsg("ошибка при получении данных по пробегу");
+        },
+        complete: function () {
+
+        },
+
+    });
+
+
+
+
+
+
+
+
+    // console.log(invnom);
+    // console.log($('#dtpicker1').datetimepicker('getValue'));
+    // console.log(datebeg);
+    // console.log($('#dtpicker2').datetimepicker('getValue'));
+    // console.log(dateend);
 
 
 }

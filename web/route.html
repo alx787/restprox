@@ -43,7 +43,7 @@
                 $("#dtpicker2").datetimepicker();
 
                 showErrorMsg("Недостаточно параметров для построения маршрута");
-                return false;
+                //return false;
             }
 
             var msg = "";
@@ -63,13 +63,23 @@
 
             if (msg != "") {
                 showErrorMsg(msg);
-                return false;
+                //return false;
             }
 
 
+            // заполним инв номер
             $("#invnom").val(params[0]);
+            // и рег номер
+            refreshRegnom(params[0]);
 
-            //alert("привет");
+            $("#invnom").on('keypress',function(e) {
+                if(e.which == 13) {
+                    // console.log($(this).val());
+                    refreshRegnom($(this).val());
+                }
+            });
+
+            // настройка дейтпикеров
             $.datetimepicker.setLocale('ru');
 
             $("#dtpicker1").datetimepicker({
@@ -106,7 +116,7 @@
             <div class="wrapper">
 
                 <div class="title fontbold">Передвижение ТС</div>
-                <div class="title">р.н. А000АА 43 RUS инв.н <input id="invnom" value="" type="text"></div>
+                <div class="title">р.н. <span id="regnom">xxxxxxxxxxx</span> инв.н <input id="invnom" value="" type="text"></div>
 
                 <div class="controls">
                     <div class="clearboth">
@@ -120,7 +130,7 @@
                     </div>
 
                     <div class="clearboth divmargins">
-                        <label for="probeg">ПРОБЕГ: </label>
+                        <label for="probeg">КМ / Л: </label>
                         <input id="probeg" type="text" />
                     </div>
 
@@ -130,6 +140,233 @@
                 </div>
 
             </div>
+
+            <div style="position: absolute; top: 100px; left: 240px; width: 550px; height: 192px; z-index: 1000; border: 1px solid #FFFFFF; color: #FFFFFF; background-color: #00008b; font-family: Roboto,RobotoDraft,Helvetica,Arial,sans-serif; font-size: 12px;">
+                <div id="tracksclosebtn">Закрыть</div>
+                <div class="title fontbold">Поездки ТС</div>
+                <!-- заголовок -->
+                <div style="margin: 0 5px; height: 15px; background-color: #000000">
+                    <div style="float:left; width: 30px">№</div>
+                    <div style="float:left; width: 120px">дата начала</div>
+                    <div style="float:left; width: 120px">дата окончания</div>
+                    <div style="float:left; width: 60px">....</div>
+                    <div style="float:left; width: 60px">пробег</div>
+                    <div style="float:left; width: 60px">длит</div>
+                    <div style="float:left; width: 60px">расход</div>
+                </div>
+
+                <!-- данные -->
+                <div style="clear: both; height: 150px; list-style-type: none; padding: 0; margin: 0 5px; color: #000000; background-color: #FFFFFF; overflow-y: auto; height: 150px; background-color: #FFFFFF;">
+                    <ul style="list-style-type: none; padding: 0; margin: 0">
+                        <li style="height: 17px;">
+                            <div style="float:left; width: 30px">100</div>
+                            <div style="float:left; width: 120px">30.07.2020-07:31:15</div>
+                            <div style="float:left; width: 120px">30.07.2020-07:37:08</div>
+                            <div style="float:left; width: 60px">0.888</div>
+                            <div style="float:left; width: 60px">0.99</div>
+                            <div style="float:left; width: 60px">0.08</div>
+                            <div style="float:left; width: 60px">0.10 lt</div>
+
+                            <div style="display: none">47.877305</div>
+                            <div style="display: none">56.6282016667</div>
+                            <div style="display: none">47.8894183333</div>
+                            <div style="display: none">56.6281616667</div>
+                        </li>
+
+
+                        <li style="height: 17px;">
+                            <div style="float:left; width: 30px">100</div>
+                            <div style="float:left; width: 120px">30.07.2020-07:31:15</div>
+                            <div style="float:left; width: 120px">30.07.2020-07:37:08</div>
+                            <div style="float:left; width: 60px">0.888</div>
+                            <div style="float:left; width: 60px">0.99</div>
+                            <div style="float:left; width: 60px">0.08</div>
+                            <div style="float:left; width: 60px">0.10 lt</div>
+
+                            <div style="display: none">47.877305</div>
+                            <div style="display: none">56.6282016667</div>
+                            <div style="display: none">47.8894183333</div>
+                            <div style="display: none">56.6281616667</div>
+                        </li>
+                        <li style="height: 17px; background-color: #c6bdf7;">
+                            <div style="float:left; width: 30px">100</div>
+                            <div style="float:left; width: 120px">30.07.2020-07:31:15</div>
+                            <div style="float:left; width: 120px">30.07.2020-07:37:08</div>
+                            <div style="float:left; width: 60px">0.888</div>
+                            <div style="float:left; width: 60px">0.99</div>
+                            <div style="float:left; width: 60px">0.08</div>
+                            <div style="float:left; width: 60px">0.10 lt</div>
+
+                            <div style="display: none">47.877305</div>
+                            <div style="display: none">56.6282016667</div>
+                            <div style="display: none">47.8894183333</div>
+                            <div style="display: none">56.6281616667</div>
+                        </li>
+                        <li style="height: 17px;">
+                            <div style="float:left; width: 30px">100</div>
+                            <div style="float:left; width: 120px">30.07.2020-07:31:15</div>
+                            <div style="float:left; width: 120px">30.07.2020-07:37:08</div>
+                            <div style="float:left; width: 60px">0.888</div>
+                            <div style="float:left; width: 60px">0.99</div>
+                            <div style="float:left; width: 60px">0.08</div>
+                            <div style="float:left; width: 60px">0.10 lt</div>
+
+                            <div style="display: none">47.877305</div>
+                            <div style="display: none">56.6282016667</div>
+                            <div style="display: none">47.8894183333</div>
+                            <div style="display: none">56.6281616667</div>
+                        </li>
+                        <li style="height: 15px;">
+                            <div style="float:left; width: 30px">100</div>
+                            <div style="float:left; width: 120px">30.07.2020-07:31:15</div>
+                            <div style="float:left; width: 120px">30.07.2020-07:37:08</div>
+                            <div style="float:left; width: 60px">0.888</div>
+                            <div style="float:left; width: 60px">0.99</div>
+                            <div style="float:left; width: 60px">0.08</div>
+                            <div style="float:left; width: 60px">0.10 lt</div>
+
+                            <div style="display: none">47.877305</div>
+                            <div style="display: none">56.6282016667</div>
+                            <div style="display: none">47.8894183333</div>
+                            <div style="display: none">56.6281616667</div>
+                        </li>
+                        <li style="height: 15px;">
+                            <div style="float:left; width: 30px">100</div>
+                            <div style="float:left; width: 120px">30.07.2020-07:31:15</div>
+                            <div style="float:left; width: 120px">30.07.2020-07:37:08</div>
+                            <div style="float:left; width: 60px">0.888</div>
+                            <div style="float:left; width: 60px">0.99</div>
+                            <div style="float:left; width: 60px">0.08</div>
+                            <div style="float:left; width: 60px">0.10 lt</div>
+
+                            <div style="display: none">47.877305</div>
+                            <div style="display: none">56.6282016667</div>
+                            <div style="display: none">47.8894183333</div>
+                            <div style="display: none">56.6281616667</div>
+                        </li>
+                        <li style="height: 15px;">
+                            <div style="float:left; width: 30px">100</div>
+                            <div style="float:left; width: 120px">30.07.2020-07:31:15</div>
+                            <div style="float:left; width: 120px">30.07.2020-07:37:08</div>
+                            <div style="float:left; width: 60px">0.888</div>
+                            <div style="float:left; width: 60px">0.99</div>
+                            <div style="float:left; width: 60px">0.08</div>
+                            <div style="float:left; width: 60px">0.10 lt</div>
+
+                            <div style="display: none">47.877305</div>
+                            <div style="display: none">56.6282016667</div>
+                            <div style="display: none">47.8894183333</div>
+                            <div style="display: none">56.6281616667</div>
+                        </li>
+                        <li style="height: 15px;">
+                            <div style="float:left; width: 30px">100</div>
+                            <div style="float:left; width: 120px">30.07.2020-07:31:15</div>
+                            <div style="float:left; width: 120px">30.07.2020-07:37:08</div>
+                            <div style="float:left; width: 60px">0.888</div>
+                            <div style="float:left; width: 60px">0.99</div>
+                            <div style="float:left; width: 60px">0.08</div>
+                            <div style="float:left; width: 60px">0.10 lt</div>
+
+                            <div style="display: none">47.877305</div>
+                            <div style="display: none">56.6282016667</div>
+                            <div style="display: none">47.8894183333</div>
+                            <div style="display: none">56.6281616667</div>
+                        </li>
+                        <li style="height: 15px;">
+                            <div style="float:left; width: 30px">100</div>
+                            <div style="float:left; width: 120px">30.07.2020-07:31:15</div>
+                            <div style="float:left; width: 120px">30.07.2020-07:37:08</div>
+                            <div style="float:left; width: 60px">0.888</div>
+                            <div style="float:left; width: 60px">0.99</div>
+                            <div style="float:left; width: 60px">0.08</div>
+                            <div style="float:left; width: 60px">0.10 lt</div>
+
+                            <div style="display: none">47.877305</div>
+                            <div style="display: none">56.6282016667</div>
+                            <div style="display: none">47.8894183333</div>
+                            <div style="display: none">56.6281616667</div>
+                        </li>
+                        <li style="height: 15px;">
+                            <div style="float:left; width: 30px">100</div>
+                            <div style="float:left; width: 120px">30.07.2020-07:31:15</div>
+                            <div style="float:left; width: 120px">30.07.2020-07:37:08</div>
+                            <div style="float:left; width: 60px">0.888</div>
+                            <div style="float:left; width: 60px">0.99</div>
+                            <div style="float:left; width: 60px">0.08</div>
+                            <div style="float:left; width: 60px">0.10 lt</div>
+
+                            <div style="display: none">47.877305</div>
+                            <div style="display: none">56.6282016667</div>
+                            <div style="display: none">47.8894183333</div>
+                            <div style="display: none">56.6281616667</div>
+                        </li>
+                        <li style="height: 15px;">
+                            <div style="float:left; width: 30px">100</div>
+                            <div style="float:left; width: 120px">30.07.2020-07:31:15</div>
+                            <div style="float:left; width: 120px">30.07.2020-07:37:08</div>
+                            <div style="float:left; width: 60px">0.888</div>
+                            <div style="float:left; width: 60px">0.99</div>
+                            <div style="float:left; width: 60px">0.08</div>
+                            <div style="float:left; width: 60px">0.10 lt</div>
+
+                            <div style="display: none">47.877305</div>
+                            <div style="display: none">56.6282016667</div>
+                            <div style="display: none">47.8894183333</div>
+                            <div style="display: none">56.6281616667</div>
+                        </li>
+                        <li style="height: 15px;">
+                            <div style="float:left; width: 30px">100</div>
+                            <div style="float:left; width: 120px">30.07.2020-07:31:15</div>
+                            <div style="float:left; width: 120px">30.07.2020-07:37:08</div>
+                            <div style="float:left; width: 60px">0.888</div>
+                            <div style="float:left; width: 60px">0.99</div>
+                            <div style="float:left; width: 60px">0.08</div>
+                            <div style="float:left; width: 60px">0.10 lt</div>
+
+                            <div style="display: none">47.877305</div>
+                            <div style="display: none">56.6282016667</div>
+                            <div style="display: none">47.8894183333</div>
+                            <div style="display: none">56.6281616667</div>
+                        </li>
+                        <li style="height: 15px;">
+                            <div style="float:left; width: 30px">100</div>
+                            <div style="float:left; width: 120px">30.07.2020-07:31:15</div>
+                            <div style="float:left; width: 120px">30.07.2020-07:37:08</div>
+                            <div style="float:left; width: 60px">0.888</div>
+                            <div style="float:left; width: 60px">0.99</div>
+                            <div style="float:left; width: 60px">0.08</div>
+                            <div style="float:left; width: 60px">0.10 lt</div>
+
+                            <div style="display: none">47.877305</div>
+                            <div style="display: none">56.6282016667</div>
+                            <div style="display: none">47.8894183333</div>
+                            <div style="display: none">56.6281616667</div>
+                        </li>
+
+
+                    </ul>
+                </div>
+
+            </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
             <div class="errorwrapper">
                 <div id="errorclosebtn">Закрыть</div>
