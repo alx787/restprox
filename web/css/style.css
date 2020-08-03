@@ -16,6 +16,17 @@
     font-size: 12px;
 }
 
+#tracksopenbtn {
+    position: absolute;
+    top: 1px;
+    left: 207px;
+}
+
+#tracksopenbtn:hover {
+    text-decoration: underline;
+    cursor: pointer;
+}
+
 .title {
     text-align: center;
     font-size: 12px;
@@ -102,6 +113,22 @@
     text-decoration: underline;
 }
 
+
+#trackswrapper {
+    display: none;
+    position: absolute;
+    top: 100px;
+    left: 240px;
+    width: 550px;
+    height: 192px;
+    z-index: 1000;
+    border: 1px solid #FFFFFF;
+    color: #FFFFFF;
+    background-color: #00008b;
+    font-family: Roboto,RobotoDraft,Helvetica,Arial,sans-serif;
+    font-size: 12px;
+}
+
 #tracksclosebtn {
     position: absolute;
     top: 1px;
@@ -111,4 +138,53 @@
 #tracksclosebtn:hover {
     cursor: pointer;
     text-decoration: underline;
+}
+
+.headerdiv {
+    margin: 0 5px 0 7px;
+    height: 15px;
+    background-color: #000000;
+}
+
+.column30px {
+    float:left;
+    width: 30px;
+}
+
+.column120px {
+    float:left;
+    width: 120px;
+}
+
+.column60px {
+    float:left;
+    width: 60px;
+}
+
+.datadiv {
+    clear: both;
+    height: 150px;
+    padding: 0;
+    margin: 0 5px;
+    color: #000000;
+    background-color: #FFFFFF;
+    overflow-y: auto;
+    height: 150px;
+    background-color: #FFFFFF;
+}
+
+#datacontainer {
+    list-style-type: none;
+    padding: 0;
+    margin: 0
+}
+
+#datacontainer li {
+    margin-left: 2px;
+    height: 17px;
+}
+
+#datacontainer li:hover {
+    background-color: #c6bdf7;
+    cursor: pointer;
 }

@@ -114,7 +114,7 @@ function drawLines(coords) {
 
         endelem = coords[i];
 
-        addLine(begelem.x, begelem.y, endelem.x, endelem.y);
+        addLine(begelem.x, begelem.y, endelem.x, endelem.y, map.layers[2], "#0500bd");
 
         begelem = endelem;
 
@@ -208,6 +208,7 @@ function drawRoute() {
     // очистка слоев
     map.layers[1].removeAllFeatures();
     map.layers[2].removeAllFeatures();
+    map.layers[3].removeAllFeatures();
 
     // 3 - отправляем рест запрос
 
@@ -268,6 +269,9 @@ function drawRoute() {
             } else {
                 $("#probeg").val(data.content.probeg + " / " + data.content.fuelrate);
             }
+
+            fillTracksList(data.content.detail);
+
             console.log(data);
         },
         error: function (data) {

@@ -22,12 +22,8 @@ function addObjectsToMap(lon, lat, objId, objName, objLabel) {
 
 //Предполагаемый форма данных: координаты разделены точкой с запятой, долгота с широтой разделены пробелом
 //function addLine(lon1, lat1, lon2, lat2, title, ident, layr) {
-function addLine(lon1, lat1, lon2, lat2) {
+function addLine(lon1, lat1, lon2, lat2, layer, color) {
     var featuress = Array();
-
-
-    // var ttt = new OpenLayers.LonLat(parseFloat(d[0]), parseFloat(d[1]));
-    // var point0 = new OpenLayers.Geometry.Point(ttt.lon, ttt.lat);
 
     var point1 = new OpenLayers.Geometry.Point(lon1, lat1);
     point1.transform(new OpenLayers.Projection("EPSG:4326"), new OpenLayers.Projection("EPSG:900913"));
@@ -44,10 +40,11 @@ function addLine(lon1, lat1, lon2, lat2) {
 
     var vector = new OpenLayers.Layer.Vector();
     var lineString = new OpenLayers.Geometry.LineString(featuress);
-    var myLineStyle = {strokeColor:"#0500bd", strokeWidth:2};
+    var myLineStyle = {strokeColor:color, strokeWidth:2};
     var myFeature = new OpenLayers.Feature.Vector(lineString, {}, myLineStyle);
 
-    map.layers[2].addFeatures([myFeature]);
+    // map.layers[2].addFeatures([myFeature]);
+    layer.addFeatures([myFeature]);
 
 }
 
@@ -106,6 +103,31 @@ function initMap() {
     });
 
     map.addLayer(layerLables);
+
+
+    // слой для отображения поездок
+
+    //labelYOffset - сдвиг текста по вертикале относительно точки
+    var stylePointTrack = new OpenLayers.Style(
+        {
+            pointRadius: 10,
+            strokeColor: "blue",
+            strokeWidth: 5,
+            fillColor: "black",
+            labelYOffset: 20,
+            label: "${label}",
+            fontSize: 16
+        });
+
+    var layerTracks = new OpenLayers.Layer.Vector("Tracks", {
+        styleMap: new OpenLayers.StyleMap(
+            { "default": stylePointTrack,
+                "select": { pointRadius: 20}
+            })
+    });
+
+    map.addLayer(layerTracks);
+
 
 
     // шкала для выбора заранее настроенного масштаба
