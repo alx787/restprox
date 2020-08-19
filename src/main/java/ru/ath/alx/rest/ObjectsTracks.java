@@ -274,6 +274,7 @@ public class ObjectsTracks {
             url = url.replace("__row_index__", String.valueOf(i));
 
             result = WebRequestUtil.getDataFromWln(url, sid);
+
             if (result == null) {
                 return Response.ok("{\"status\":\"error\", \"description\":\"сервер вернул ошибку при попытке получения строк таблицы отчета\"}").build();
             }
@@ -371,7 +372,7 @@ public class ObjectsTracks {
                 }
 
                 try {
-                    fFuelRate = Float.valueOf(sFuelRate.replace(" lt", ""));
+                    fFuelRate = Float.valueOf(sFuelRate.replace(" lt", "").replace(" l", ""));
                 } catch (Exception e) {
                     log.warn("ошибка преобразования расхода топлива в тип float: " + sFuelRate);
                 }
@@ -694,6 +695,13 @@ public class ObjectsTracks {
         url = url.replace("__date_end__", String.valueOf(lEndTime));
 
         String resultAnsw = WebRequestUtil.getDataFromWln(url, sid);
+
+        // подсмотрим ответ сервера
+//        if (resultAnsw != null) {
+//            log.warn(resultAnsw);
+//        } else {
+//            log.warn("ответ не получен");
+//        }
 
         //
         if (resultAnsw == null) {
