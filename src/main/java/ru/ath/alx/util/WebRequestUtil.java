@@ -5,13 +5,16 @@ import com.google.gson.JsonParser;
 import org.apache.log4j.Logger;
 import ru.ath.alx.dao.AuthService;
 
-import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.*;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.X509Certificate;
 
 public class WebRequestUtil {
 
@@ -23,6 +26,41 @@ public class WebRequestUtil {
 
 
     private static String sendRequest(String url) {
+
+        //////////////////////////////////////////////////////////////////
+        // вобщем это будет подключаться к ssl без проверки сертификата
+        // не пойму почему не видит сертификат, хотя я его импортировал в хранилище
+        /* Start of Fix */
+        TrustManager[] trustAllCerts = new TrustManager[] { new X509TrustManager() {
+            public java.security.cert.X509Certificate[] getAcceptedIssuers() { return null; }
+            public void checkClientTrusted(X509Certificate[] certs, String authType) { }
+            public void checkServerTrusted(X509Certificate[] certs, String authType) { }
+
+        } };
+
+        SSLContext sc = null;
+        try {
+            sc = SSLContext.getInstance("SSL");
+            sc.init(null, trustAllCerts, new java.security.SecureRandom());
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (KeyManagementException e) {
+            e.printStackTrace();
+        }
+        HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+
+        // Create all-trusting host name verifier
+        HostnameVerifier allHostsValid = new HostnameVerifier() {
+            public boolean verify(String hostname, SSLSession session) { return true; }
+        };
+        // Install the all-trusting host verifier
+        HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
+        /* End of the fix*/
+        //////////////////////////////////////////////////////////////////
+
+
+
+
         HttpsURLConnection connection = null;
         StringBuilder result = new StringBuilder();
         boolean wasError = false;

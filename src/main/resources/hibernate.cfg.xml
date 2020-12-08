@@ -5,9 +5,9 @@
 <hibernate-configuration>
     <session-factory>
         <!-- Database Connection Settings -->
-        <property name="connection.datasource">java:comp/env/jdbc/rpdb</property>
+        <!--<property name="connection.datasource">java:comp/env/jdbc/rpdb</property>-->
         <!--<property name="connection.driver_class">com.mysql.jdbc.Driver</property>-->
-        <property name="connection.driver_class">com.mysql.cj.jdbc.Driver</property>
+        <!--<property name="connection.driver_class">com.mysql.cj.jdbc.Driver</property>-->
 
         <!-- SQL Dialect -->
         <property name="hibernate.dialect">org.hibernate.dialect.MySQLDialect</property>
@@ -16,11 +16,12 @@
 
         <property name="show_sql">false</property>
 
-        <!--<property name="connection.url">jdbc:mysql://localhost:3306/restproxdb</property>-->
+        <property name="connection.url">jdbc:mysql://localhost:3306/restproxdb?useUnicode=true&amp;serverTimezone=UTC</property>
+        <property name="connection.driver_class">com.mysql.cj.jdbc.Driver</property>
         <!--<property name="connection.driver_class">com.mysql.jdbc.Driver</property>-->
 
-        <!--<property name="connection.username">rpuser</property>-->
-        <!--<property name="connection.password">rppass</property>-->
+        <property name="connection.username">rpuser</property>
+        <property name="connection.password">rppass</property>
 
 
         <!-- NOTE that after automapping with IDEA property username and password will delete -->

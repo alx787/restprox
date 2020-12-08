@@ -20,6 +20,8 @@ import javax.ws.rs.core.Response;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Enumeration;
+import java.util.Properties;
 
 @Path("/info")
 public class Info {
@@ -38,6 +40,23 @@ public class Info {
         // вобщем все запросы к рест стали через /rest
 
 //        log.warn("token: " + authService.getToken());
+
+//
+////        String certificatesTrustStorePath = "/etc/alternatives/jre/lib/security/cacerts";
+//        String certificatesTrustStorePath = "c:\\jdk_18\\jre\\lib\\security\\cacerts";
+//        System.setProperty("javax.net.ssl.trustStore", certificatesTrustStorePath);
+//        System.setProperty("javax.net.ssl.trustStorePassword", "changeit");
+//
+//
+//        Properties p = System.getProperties();
+//        Enumeration keys = p.keys();
+//        while (keys.hasMoreElements()) {
+//            String key = (String)keys.nextElement();
+//            String value = (String)p.get(key);
+//            log.warn(key + ": " + value);
+//        }
+
+
 
         return Response.ok("{\"status\":\"OK\", \"description\":\"info test message\"}").build();
 
