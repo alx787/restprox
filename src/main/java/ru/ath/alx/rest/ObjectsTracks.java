@@ -797,5 +797,298 @@ public class ObjectsTracks {
 
 
 
+    // получаем данные о превышениях скорости тс
+    // invnom - инвентарный номер
+    // datebegin - дата начала в формате гггг-мм-дд
+    // dateend - дата окончания в формате гггг-мм-дд
+    // sid - идентификатор сессии, используется если для получения данных используется существующая сессия, если не задан то будет создана новая
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/speeding/{invnom}/{datebegin}/{dateend}")
+    public Response getSpeeding(@PathParam("invnom") String invnom,
+                                   @PathParam("datebegin") String datebegin,
+                                   @PathParam("dateend") String dateend) {
+
+        ///////////////////////////////////////////////////
+        // тут всякие разные проверки переменных
+        if ((invnom == null) || (invnom.equals(""))) {
+            return Response.ok("{\"status\":\"error\", \"description\":\"object invnom is empty\"}").build();
+        }
+
+        if ((datebegin == null) || (datebegin.equals(""))) {
+            return Response.ok("{\"status\":\"error\", \"description\":\"datebegin is empty\"}").build();
+        }
+
+        if ((dateend == null) || (dateend.equals(""))) {
+            return Response.ok("{\"status\":\"error\", \"description\":\"dateend is empty\"}").build();
+        }
+
+        String wlnId = null;
+
+        Transport searchTr = trService.findTransportByInvnom(invnom);
+
+        if (searchTr == null) {
+            return Response.ok("{\"status\":\"error\", \"description\":\"объект с инв номером " + invnom + " не найден в базе данных\"}").build();
+        }
+
+        // дату начала и окончания необходимо преобразовать в unix формат
+        Date pDateBegin = null;
+        Date pDateEnd = null;
+
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+        SimpleDateFormat formatFull = new SimpleDateFormat("dd.MM.yyyy-HH:mm:ss");
+
+
+//        format.setTimeZone(java.util.TimeZone.getTimeZone("GMT+3"));
+        format.setTimeZone(java.util.TimeZone.getTimeZone("UTC"));
+
+//        log.warn("time zone");
+//        log.warn(format.getTimeZone().toString());
+
+//      для получения значений даты будем использовать временную зону UTC
+//      и корректировать на минус три часа
+
+
+        try {
+            if (datebegin.length() == 10) {
+                pDateBegin = format.parse(datebegin);
+            } else {
+                pDateBegin = formatFull.parse(datebegin);
+            }
+            ;
+
+            if (dateend.length() == 10) {
+                pDateEnd = format.parse(dateend);
+            } else {
+                pDateEnd = formatFull.parse(dateend);
+            }
+        } catch (ParseException e) {
+            e.printStackTrace();
+            log.warn("ошибка получения периода. дата начала: " + datebegin + ", дата окончания: " + dateend);
+            return Response.ok("{\"status\":\"error\", \"description\":\"ошибка получения периода, дата начала: " + datebegin + ", дата окончания: " + dateend + "\"}").build();
+        }
+
+        // часовой пояс
+        int timeZone = 3;
+        // преобразуем даты в юникс формат и корректируем с учетом часового пояса в UTC
+        long lBeginTime = pDateBegin.getTime() / 1000 - 3600 * timeZone;
+        long lEndTime = pDateEnd.getTime() / 1000 - 3600 * timeZone + 86399;
+
+//        log.warn("time convert");
+//        log.warn(String.valueOf(lBeginTime));
+//        log.warn(String.valueOf(lEndTime));
+
+
+        String reportId = "31";
+        String templateId = "10"; // Превышение (о)
+
+
+        //////////////////////////////////////////////////////
+        // получим ид сессии
+        //////////////////////////////////////////////////////
+        // если значение sid явно передано то оно передается в переменную
+        // со значением в виде /sid/25b134f557133e6bcc5943fd4bd4df01
+        // поэтому его надо вытаскивать через split
+
+        //log.warn("sid " + sid);
+
+        String sid = WebRequestUtil.getSID();
+
+        // очистим сессию
+        //WebRequestUtil.getDataFromWln(URL_CLEAR_SESSION, sid);
+
+        //////////////////////////////////////////////////////
+        // получим данные таблиц
+        //////////////////////////////////////////////////////
+        String url = URL_GET_TRACK.replace("__report_id__", reportId);
+        url = url.replace("__template_id__", templateId);
+        url = url.replace("__object_id__", searchTr.getWlnid());
+        url = url.replace("__date_begin__", String.valueOf(lBeginTime));
+        url = url.replace("__date_end__", String.valueOf(lEndTime));
+
+        //log.warn(url);
+
+        String result = WebRequestUtil.getDataFromWln(url, sid);
+
+
+        if (result == null) {
+            return Response.ok("{\"status\":\"error\", \"description\":\"сервер вернул ошибку при попытке получения результатов отчета\"}").build();
+        }
+
+
+//        log.warn(result);
+
+
+        // прочитаем ответ, если не ошибка то продолжим далее
+        JsonObject resJsonObj = new JsonParser().parse(result).getAsJsonObject();
+        // проверка на ошибку
+        // произошла ошибка
+        if (resJsonObj.has("error")) {
+            log.warn("ошибка при получении данных таблиц превышений скорости, код ошибки " + resJsonObj.get("error").getAsString());
+            return Response.ok("{\"status\":\"error\", \"description\":\"ошибка при получении данных таблиц превышений скорости, код ошибки " + resJsonObj.get("error").getAsString() + "\"}").build();
+        }
+
+
+        // читаем данные таблицы ответа
+        JsonObject repResultJsonObj = resJsonObj.getAsJsonObject("reportResult");
+        JsonArray tablesJsonArr = repResultJsonObj.getAsJsonArray("tables");
+
+        String tableIndex = null; // номер таблицы
+        String cntRows = null;  // количество строк
+
+        for (int i = 0; i < tablesJsonArr.size(); i++) {
+
+            JsonObject tableJsonObj = tablesJsonArr.get(i).getAsJsonObject();
+            if (tableJsonObj.get("name").getAsString().equals("unit_speedings")) {
+                tableIndex = String.valueOf(i);
+                cntRows = tableJsonObj.get("rows").getAsString();
+            }
+
+        }
+
+
+        // проверка
+        if ((tableIndex == null) || (cntRows == null)) {
+            log.warn("при получении данных таблиц превышений скорости не найдена таблица с именем unit_speedings");
+            return Response.ok("{\"status\":\"error\", \"description\":\"при получении данных таблиц превышений скорости не найдена таблица с именем unit_speedings\"}").build();
+        }
+
+
+        //////////////////////////////////////////////////////
+        // прочитаем таблицу превышений скорости
+        //////////////////////////////////////////////////////
+        url = URL_GET_TABLE.replace("__table_index__", tableIndex);
+        url = url.replace("__first_row__", "0");
+        url = url.replace("__last_row__", cntRows);
+
+
+        result = WebRequestUtil.getDataFromWln(url, sid);
+        if (result == null) {
+            return Response.ok("{\"status\":\"error\", \"description\":\"сервер вернул ошибку при попытке получения таблиц отчета\"}").build();
+        }
+
+
+//        log.warn(result);
+
+        // прочитаем ответ, если не ошибка то продолжим далее
+        JsonArray resArr = new JsonParser().parse(result).getAsJsonArray();
+
+
+        //////////////////////////////////////////////////
+        // настроим форматы
+        //////////////////////////////////////////////////
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd.MM.yyyy-HH:mm:ss");
+        simpleDateFormat.setTimeZone(java.util.TimeZone.getTimeZone("UTC"));
+
+        // для преобразования float
+        Locale locale = new Locale("en", "US");
+
+        DecimalFormatSymbols symbols = new DecimalFormatSymbols(locale);
+        symbols.setDecimalSeparator('.');
+
+        DecimalFormat df = new DecimalFormat("0.00", symbols);
+        //////////////////////////////////////////////////
+
+
+        //////////////////////////////////
+        // массив json для детальных данных
+        JsonArray detailArr = new JsonArray();
+
+        for (int i = 0; i < resArr.size(); i++) {
+            JsonObject oneSpeeding = resArr.get(i).getAsJsonObject();
+
+            JsonArray oneSpeedingArr = oneSpeeding.get("c").getAsJsonArray();
+
+
+            // начало
+            JsonObject beginTimeObj = oneSpeedingArr.get(0).getAsJsonObject();
+
+            String begintime = beginTimeObj.get("t").getAsString();
+            String beginx = beginTimeObj.get("x").getAsString();
+            String beginy = beginTimeObj.get("y").getAsString();
+
+            // длительность
+            String duration = oneSpeedingArr.get(2).getAsString();
+
+            // максимальная скорость
+            JsonObject speedMaxObj = oneSpeedingArr.get(4).getAsJsonObject();
+
+            String speedmax = speedMaxObj.get("t").getAsString();
+
+            // ограничение скорости
+            String speedlimit = oneSpeedingArr.get(5).getAsString();
+
+            // количество превышений
+            String speedingcount = oneSpeedingArr.get(13).getAsString();
+
+
+            //////////////////////////////////////////////////////
+            // элемент детализации
+            //////////////////////////////////////////////////////
+            JsonObject detailElem = new JsonObject();
+
+            detailElem.addProperty("begintime", begintime);
+            detailElem.addProperty("beginx", beginx);
+            detailElem.addProperty("beginy", beginy);
+            detailElem.addProperty("duration", duration);
+            detailElem.addProperty("speedmax", speedmax);
+            detailElem.addProperty("speedlimit", speedlimit);
+            detailElem.addProperty("speedingcount", speedingcount);
+
+
+            detailArr.add(detailElem);
+
+        }
+
+
+        // формат ответа
+        // {
+        //      status: OK
+        //      description: ""
+        //      content : [
+//                          {
+//                        begintime :
+//                        beginx :
+//                        beginy :
+//                        duration :
+//                        speedmax :
+//                        speedlimit :
+//                        speedingcount :
+//
+//                          },
+//                  {},{},{},
+//                        ]
+//
+            //      }
+            //
+            // }
+
+
+
+
+        ///////////////////////////////////////////////////////
+        // здесь начнем формирование JSON объекта ответа
+        ///////////////////////////////////////////////////////
+
+        JsonObject contentObj = new JsonObject();
+
+        contentObj.addProperty("regnom", searchTr.getRegistrationplate());
+        contentObj.addProperty("invnom", searchTr.getAtinvnom());
+
+        JsonObject answerObj = new JsonObject();
+        answerObj.addProperty("status", "OK");
+        answerObj.addProperty("description", "");
+
+
+        answerObj.add("content", detailArr);
+
+
+        Gson gson = new Gson();
+
+        return Response.ok(gson.toJson(answerObj)).build();
+
+    }
+
+
 
 }
