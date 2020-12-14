@@ -1070,14 +1070,15 @@ public class ObjectsTracks {
         // здесь начнем формирование JSON объекта ответа
         ///////////////////////////////////////////////////////
 
-        JsonObject contentObj = new JsonObject();
 
-        contentObj.addProperty("regnom", searchTr.getRegistrationplate());
-        contentObj.addProperty("invnom", searchTr.getAtinvnom());
 
         JsonObject answerObj = new JsonObject();
         answerObj.addProperty("status", "OK");
         answerObj.addProperty("description", "");
+        answerObj.addProperty("regnom", searchTr.getRegistrationplate());
+        answerObj.addProperty("invnom", searchTr.getAtinvnom());
+
+
 
 
         answerObj.add("content", detailArr);
