@@ -872,7 +872,7 @@ public class ObjectsTracks {
         int timeZone = 3;
         // преобразуем даты в юникс формат и корректируем с учетом часового пояса в UTC
         long lBeginTime = pDateBegin.getTime() / 1000 - 3600 * timeZone;
-        long lEndTime = pDateEnd.getTime() / 1000 - 3600 * timeZone + 86399;
+        long lEndTime = pDateEnd.getTime() / 1000 - 3600 * timeZone;
 
 //        log.warn("time convert");
 //        log.warn(String.valueOf(lBeginTime));
@@ -1003,7 +1003,8 @@ public class ObjectsTracks {
             // начало
             JsonObject beginTimeObj = oneSpeedingArr.get(0).getAsJsonObject();
 
-            String begintime = beginTimeObj.get("t").getAsString();
+//            String begintime = beginTimeObj.get("t").getAsString();
+            String begintime = oneSpeeding.get("t1").getAsString();
             String beginx = beginTimeObj.get("x").getAsString();
             String beginy = beginTimeObj.get("y").getAsString();
 
@@ -1027,7 +1028,7 @@ public class ObjectsTracks {
             //////////////////////////////////////////////////////
             JsonObject detailElem = new JsonObject();
 
-            detailElem.addProperty("begintime", begintime);
+            detailElem.addProperty("begintime", ConverterUtil.convertUnixToHuman(begintime, 3));
             detailElem.addProperty("beginx", beginx);
             detailElem.addProperty("beginy", beginy);
             detailElem.addProperty("duration", duration);
